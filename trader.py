@@ -6,8 +6,8 @@ M2 = 104648257118348370704723099
 M3 = 125000000000000064750000000000009507500000000000294357
 s = b""
 
-USER = 'xhtang'
-PASSWORD = 'undefined'
+USER = 'epsilon'
+PASSWORD = 'suu3E5SA'
 
 with requests.Session().get("http://47.95.111.217:10001",
                             stream=True,

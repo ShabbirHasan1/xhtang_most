@@ -1,15 +1,27 @@
 import requests
 
-N = 256
-M = 20220127171443
+N = 512
+M1 = 20220209192254
+M2 = 104648257118348370704723099
+M3 = 125000000000000064750000000000009507500000000000294357
 s = b""
 
-with requests.Session().get("http://42.62.6.5:10001", stream=True, headers=None) as fin:
+USER = 'xhtang'
+PASSWORD = 'undefined'
+
+with requests.Session().get("http://47.95.111.217:10001",
+                            stream=True,
+                            headers=None) as fin:
     for c in fin.iter_content():
         s += c
         if len(s) > N:
             s = s[-N:]
-        for i in range(len(s)):
-            if int(s[i:]) % M == 0 and s[i] != ord("0"):
-                requests.post("http://42.62.6.5:10002/submit?user=demo", data=s[i:])
+        for i, digit in enumerate(s):
+            if digit == ord('0'):
+                continue
+            num = int(s[i:])
+            if num % M1 == 0 or num % M2 == 0 or num % M3 == 0:
+                requests.post(
+                    f"http://47.95.111.217:10002/submit?user={USER}&passwd={PASSWORD}",
+                    data=s[i:])
                 print("submit", s[i:].decode("ascii"))

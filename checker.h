@@ -80,7 +80,7 @@ int next_submit_fd = 0;
 int submit_fds[SUBMIT_FD_N];
 
 // 不同长度的http头
-char headers[N + 10][MAX_STR_LEN];
+char headers[N + 10][MAX_STR_LEN + N];
 int headers_n[N + 10];
 
 // 获取当前时间，单位：秒
@@ -208,6 +208,7 @@ void on_chunk(ssize_t len)
             next_submit_fd = (next_submit_fd + 1) % SUBMIT_FD_N;
             to_close_fds[ans_cnt] = submit_fd;
 
+            assert(ans_len > 0);
             ans_slices[ans_cnt] = std::make_pair(start_pos, ans_len);
             ++ans_cnt;
         }
@@ -223,8 +224,8 @@ void on_chunk(ssize_t len)
             ssize_t start_pos = ans_slices[i].first;
             ssize_t ans_len = ans_slices[i].second;
             fwrite(buffer + start_pos, 1, ans_len, stdout);
+            putchar('\n');
         }
-        printf("\n");
         gen_submit_fd();
     }
 }
@@ -312,7 +313,7 @@ int main()
             on_chunk(n);
             pos += n;
             // handle page fault ahead
-            memset(buffer + pos, 0, MAX_CHUNK);
+            memset(buffer + pos, 'f', MAX_CHUNK);
             update_ans();
         }
     }

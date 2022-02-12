@@ -120,7 +120,7 @@ int main()
 
     for (int i = 1; i <= N; i++)
     {
-        headers_n[i] = sprintf(headers[i], "POST /submit?user=%s&password=%s HTTP/1.1\r\nContent-Length: %d\r\n\r\n", USER, PASSWORD, i);
+        headers_n[i] = sprintf(headers[i], "POST /submit?user=%s&passwd=%s HTTP/1.1\r\nContent-Length: %d\r\n\r\n", USER, PASSWORD, i);
     }
 
     int socket_fd = socket(AF_INET, SOCK_STREAM, 0);

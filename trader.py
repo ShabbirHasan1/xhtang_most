@@ -20,7 +20,7 @@ with requests.Session().get("http://47.95.111.217:10001",
             if digit == ord('0'):
                 continue
             num = int(s[i:])
-            if num % M1 == 0 or num % M2 == 0 or num % M3 == 0:
+            if num % M2 == 0 or num % M3 == 0:
                 requests.post(
                     f"http://47.95.111.217:10002/submit?user={USER}&passwd={PASSWORD}",
                     data=s[i:])

@@ -12,12 +12,13 @@ PASSWORD = 'suu3E5SA'
 with requests.Session().get("http://47.95.111.217:10001",
                             stream=True,
                             headers=None) as fin:
+    start_pos = 0
     for c in fin.iter_content():
         s += c
         if len(s) > N:
-            s = s[-N:]
-        for i, digit in enumerate(s):
-            if digit == ord('0'):
+            start_pos += 1
+        for i in range(start_pos, len(s)):
+            if s[i] == ord('0'):
                 continue
             num = int(s[i:])
             if num % M2 == 0 or num % M3 == 0:

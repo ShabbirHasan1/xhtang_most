@@ -95,7 +95,7 @@ void gen_submit_fd()
                         close(ofd);
                 }
 
-                printf("generate one submit fd\n");
+                // printf("generate one submit fd\n");
             }
 
         usleep(1000);
@@ -273,7 +273,7 @@ int main()
             }
 
             pos += n;
-            printf("next_submit_fd_pos = %d\n", next_submit_fd_pos);
+            //printf("next_submit_fd_pos = %d\n", next_submit_fd_pos);
         }
     }
 

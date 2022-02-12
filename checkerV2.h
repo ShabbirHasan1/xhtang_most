@@ -156,6 +156,8 @@ void update_ans()
         for (ssize_t part1_len = 0; part1_len <= max_part1_len; ++part1_len)
         {
             ssize_t start_pos = pos - part1_len;
+            if (start_pos < pos && buffer[start_pos] == '0')
+                continue;
 
             factor_t part1 = 0;
             for (ssize_t i = start_pos; i < pos; ++i)
@@ -194,11 +196,14 @@ void on_chunk(ssize_t len)
     {
         factor_t digit = buffer[pos + part2_len - 1] - '0';
 #ifdef FACTOR
+        for (int i_factor = 0; i_factor < n_factor; ++i_factor)
+        {
+            part2[i_factor] = (part2[i_factor] * 10 + digit) % factors[i_factor];
+        }
         static unordered_map<ssize_t, int> votes(N);
         votes.clear();
         for (int i_factor = 0; i_factor < n_factor; ++i_factor)
         {
-            part2[i_factor] = (part2[i_factor] * 10 + digit) % factors[i_factor];
             auto &possible_start_pos = factor_start_pos[i_factor][part2_len];
             auto it = possible_start_pos.find(part2[i_factor]);
             if (it == possible_start_pos.end())
@@ -208,6 +213,9 @@ void on_chunk(ssize_t len)
             for (ssize_t start_pos : it->second)
             {
                 ++votes[start_pos];
+#ifdef DEBUG
+                printf("vote: i_factor=%d start_pos=%ld len=%ld\n", i_factor, start_pos, pos + part2_len - start_pos);
+#endif
             }
         }
         for (auto &pair : votes)
@@ -234,9 +242,11 @@ void on_chunk(ssize_t len)
             sent_times[ans_cnt] = get_timestamp();
 
             int submit_fd = submit_fds[next_submit_fd];
+#ifndef DEBUG
             ssize_t write_len = headers_n[ans_len] + ans_len;
             int ret = write(submit_fd, headers[ans_len], write_len);
             assert(ret == write_len && "write incomplete");
+#endif
 
             submit_fds[next_submit_fd] = -1;
             next_submit_fd = (next_submit_fd + 1) % SUBMIT_FD_N;

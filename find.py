@@ -9,6 +9,15 @@ s = b""
 USER = 'epsilon'
 PASSWORD = 'suu3E5SA'
 
+
+def is_submit(powers):
+    return powers[0] >= 55 and powers[1] >= 35 and powers[2] >= 20
+
+
+def is_ans(powers):
+    return powers[0] >= 75 and powers[1] >= 50 and powers[2] >= 25
+
+
 with requests.Session().get("http://47.95.111.217:10001",
                             stream=True,
                             headers=None) as fin:
@@ -41,3 +50,13 @@ with requests.Session().get("http://47.95.111.217:10001",
                     print()
                 print(f'{powers}={power_cnt[powers]}', end='\t')
             print()
+            max_powers = sorted(filter(is_submit, power_cnt), key=sum, reverse=True)[:ROW*COLUMN]
+            for i, powers in enumerate(max_powers):
+                if i % COLUMN == 0:
+                    print()
+                print(f'{powers}={power_cnt[powers]}', end='\t')
+            print()
+            submit_cnt = sum(cnt for powers, cnt in power_cnt.items() if is_submit(powers))
+            ans_cnt = sum(cnt for powers, cnt in power_cnt.items() if is_ans(powers))
+            if submit_cnt > 0:
+                print(f'{submit_cnt=} {ans_cnt=} {ans_cnt / submit_cnt=}')

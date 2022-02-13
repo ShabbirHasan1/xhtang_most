@@ -36,6 +36,7 @@ class AnsStat:
     def __init__(self):
         self.cnt = 0
         self.missed = 0
+        self.latency = []
         self.best_latency = []
         self.rank_cnt = defaultdict(int)
         self.rank_latency = defaultdict(list)
@@ -46,7 +47,8 @@ class AnsStat:
             '\n',
             f'cnt={self.cnt}',
             f'missed={self.missed}({0.0 if self.cnt == 0 else self.missed / self.cnt:.2%})',
-            f'median(best_latency)={pd.Series(self.best_latency).median()}us',
+            f'median(best_latency)={pd.Series(self.best_latency, dtype=int).median()}us',
+            f'median(latency)={pd.Series(self.latency, dtype=int).median()}us',
             '\n',
         ]
         for i in range(1, 11):
@@ -90,7 +92,9 @@ class AnsTracker:
                     if ans_type == 0:
                         ans_type = user.split()[1]
                     self.stats[ans_type].rank_cnt[i + 1] += 1
-                    self.stats[ans_type].rank_latency[i + 1].append(self.a2us(user.split()[0]) - key[0])
+                    latency = self.a2us(user.split()[0]) - key[0]
+                    self.stats[ans_type].rank_latency[i + 1].append(latency)
+                    self.stats[ans_type].latency.append(latency)
                     break
             else:
                 self.stats[ans_type].missed += 1

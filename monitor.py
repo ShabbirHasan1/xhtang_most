@@ -2,7 +2,7 @@ from collections import defaultdict
 from decimal import DivisionByZero
 from email.policy import default
 from functools import lru_cache
-from datetime import datetime
+from datetime import date, datetime
 import time
 import requests
 
@@ -114,9 +114,8 @@ class AnsTracker:
             print(f'{total_miss_rate=:.1%} {total_rank1_rate=:.1%}')
 
 
-
 tracker = AnsTracker()
-
+start_time = datetime.now()
 while True:
     board = requests.get('http://47.95.111.217:10000/board.txt')
     if not board.ok or len(board.text) == 0:
@@ -155,7 +154,8 @@ while True:
         tracker.record_ans(ans, send_ts, ranks)
         i += j + 1
 
-    log(datetime.now(), time.time())
+    now = datetime.now()
+    log(datetime.now(), now - start_time, time.time())
     tracker.report()
     log("")
     time.sleep(10)

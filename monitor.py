@@ -1,8 +1,12 @@
 from collections import defaultdict
+from decimal import DivisionByZero
+from email.policy import default
 from functools import lru_cache
 from datetime import datetime
 import time
 import requests
+
+import pandas as pd
 
 problem_def = [
     'N  = 512',
@@ -29,21 +33,28 @@ def log(*args):
 
 
 class AnsStat:
-    def __init__(self, t):
-        self.t = t
+    def __init__(self):
         self.cnt = 0
         self.missed = 0
+        self.best_latency = []
         self.rank_cnt = defaultdict(int)
+        self.rank_latency = defaultdict(list)
 
-    def report(self):
+    def report(self, t):
         columns = [
-            f'type={self.t}',
+            f'type={t}',
+            '\n',
             f'cnt={self.cnt}',
-            f'missed={self.missed}({0.0 if self.cnt == 0 else self.missed / self.cnt:.2%})'
+            f'missed={self.missed}({0.0 if self.cnt == 0 else self.missed / self.cnt:.2%})',
+            f'median(best_latency)={pd.Series(self.best_latency).median()}us',
+            '\n',
         ]
         for i in range(1, 11):
             if self.rank_cnt[i] > 0:
-                columns.append(f'rank{i}={self.rank_cnt[i]}({0.0 if self.cnt == 0 else self.rank_cnt[i] / self.cnt:.2%})')
+                columns.append(f'rank{i}={self.rank_cnt[i]}({self.rank_cnt[i] / self.cnt:.1%})')
+                columns.append(f'median={pd.Series(self.rank_latency[i]).median()}us')
+            if i == 3:
+                columns.append('\n')
         log('\t'.join(columns))
 
 
@@ -60,29 +71,44 @@ class AnsTracker:
             assert t != 0
         return t
 
+    @staticmethod
+    def a2us(ts: str) -> int:
+        return int(float(ts) * 1e6)
+
     def __init__(self):
         self.ranks = {}
-        self.stats = [AnsStat(t) for t in range(len(M))]
+        self.stats = defaultdict(AnsStat)
         self.fmiss = open('log/missed', 'a')
 
     def record_ans(self, ans: str, send_ts: str, ranks: list):
-        key = (int(float(send_ts) * 1e6), ans)
+        key = (self.a2us(send_ts), ans)
         if time.time() * 1e6 - key[0] > 5e6 and key not in self.ranks:
             ans_type = self.get_ans_type(ans)
             self.ranks[key] = ranks
-            self.stats[ans_type].cnt += 1
             for i, user in enumerate(ranks):
                 if USER in user:
+                    if ans_type == 0:
+                        ans_type = user.split()[1]
                     self.stats[ans_type].rank_cnt[i + 1] += 1
+                    self.stats[ans_type].rank_latency[i + 1].append(self.a2us(user.split()[0]) - key[0])
                     break
             else:
                 self.stats[ans_type].missed += 1
                 self.fmiss.write(f'{send_ts=}\t{ans_type=}\t{ans}\n')
                 self.fmiss.flush()
+            self.stats[ans_type].cnt += 1
+            if len(ranks) > 0:
+                self.stats[ans_type].best_latency.append(self.a2us(ranks[0].split()[0]) - key[0])
 
     def report(self):
-        for t in range(len(M)):
-            self.stats[t].report()
+        for t in sorted(self.stats, key=str):
+            self.stats[t].report(t)
+        if len(self.stats) > 0:
+            total_cnt = sum(stat.cnt for stat in self.stats.values())
+            total_miss_rate = sum(stat.missed for stat in self.stats.values()) / total_cnt
+            total_rank1_rate = sum(stat.rank_cnt[1] for stat in self.stats.values()) / total_cnt
+            print(f'{total_miss_rate=:.1%} {total_rank1_rate=:.1%}')
+
 
 
 tracker = AnsTracker()

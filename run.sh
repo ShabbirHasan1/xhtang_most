@@ -2,7 +2,7 @@ mkdir -p ./log
 mkdir -p ./bin
 
 if [[ $USER == "root" ]]; then
-    nice_command='nice -20'
+    nice_command='nice -n -20'
 else
     nice_command=''
 fi

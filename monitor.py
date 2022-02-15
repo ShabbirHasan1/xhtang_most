@@ -158,4 +158,4 @@ while True:
     log(datetime.now(), now - start_time, time.time())
     tracker.report()
     log("")
-    time.sleep(10)
+    time.sleep(20)

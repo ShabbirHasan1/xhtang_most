@@ -33,6 +33,7 @@ namespace std
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#include <sys/ioctl.h>
 
 #define USER "epsilon"
 #define PASSWORD "suu3E5SA"
@@ -152,8 +153,7 @@ struct Submitter
 
     double received_time;
     double sent_times[MAX_CONTAINER_LEN];
-    int cur_round = 0;
-    int to_close_fds[2][MAX_CONTAINER_LEN] = {-1};
+    int to_close_fds[MAX_CONTAINER_LEN];
     pair<ssize_t, ssize_t> ans_slices[MAX_CONTAINER_LEN];
     int ans_cnt = 0;
 
@@ -191,7 +191,7 @@ struct Submitter
 
         //submit_fds[next_submit_fd] = -1;
         next_submit_fd = (next_submit_fd + 1) % SUBMIT_FD_N;
-        to_close_fds[cur_round][ans_cnt] = submit_fd;
+        to_close_fds[ans_cnt] = submit_fd;
 
         assert(ans_len > 0);
         ans_slices[ans_cnt] = {start_pos, ans_len};
@@ -245,11 +245,13 @@ struct Submitter
                 putchar('\n');
             }
 
-            int last_round = cur_round ^ 1;
-            for (int i = 0; to_close_fds[last_round][i] >= 0; ++i)
-                close(to_close_fds[last_round][i]);
-            to_close_fds[cur_round][ans_cnt] = -1;
-            cur_round ^= 1;
+            for (int i = 0; i < ans_cnt; ++i)
+            {
+                int remained_bytes = 1;
+                while (remained_bytes != 0)
+                    ioctl(to_close_fds[i], TIOCOUTQ, &remained_bytes);
+                close(to_close_fds[i]);
+            }
 
             gen_submit_fd();
         }

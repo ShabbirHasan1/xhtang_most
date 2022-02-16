@@ -120,6 +120,7 @@ while True:
     board = requests.get('http://47.95.111.217:10000/board.txt')
     if not board.ok or len(board.text) == 0:
         log('[WARN] fail to get board')
+        time.sleep(60)
         continue
 
     lines = board.text.splitlines()

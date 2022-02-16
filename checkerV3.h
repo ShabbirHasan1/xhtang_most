@@ -67,7 +67,7 @@ ssize_t pos = 0;
 uint8_t buffer[BUFFER_SIZE];
 
 // 提交所使用的TCP连接池
-const int SUBMIT_FD_N = 8;
+const int SUBMIT_FD_N = 5;
 int next_submit_fd = 0;
 int submit_fds[SUBMIT_FD_N];
 

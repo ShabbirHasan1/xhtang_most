@@ -146,13 +146,14 @@ struct Submitter
     int headers_n[N + 10];
 
     // 提交所使用的TCP连接池
-    static constexpr int SUBMIT_FD_N = 5;
+    static constexpr int SUBMIT_FD_N = 4;
     int next_submit_fd = 0;
     int submit_fds[SUBMIT_FD_N];
 
     double received_time;
     double sent_times[MAX_CONTAINER_LEN];
-    int to_close_fds[MAX_CONTAINER_LEN];
+    int cur_round = 0;
+    int to_close_fds[2][MAX_CONTAINER_LEN] = {-1};
     pair<ssize_t, ssize_t> ans_slices[MAX_CONTAINER_LEN];
     int ans_cnt = 0;
 
@@ -188,9 +189,9 @@ struct Submitter
         assert(ret == write_len && "write incomplete");
 #endif
 
-        submit_fds[next_submit_fd] = -1;
+        //submit_fds[next_submit_fd] = -1;
         next_submit_fd = (next_submit_fd + 1) % SUBMIT_FD_N;
-        to_close_fds[ans_cnt] = submit_fd;
+        to_close_fds[cur_round][ans_cnt] = submit_fd;
 
         assert(ans_len > 0);
         ans_slices[ans_cnt] = {start_pos, ans_len};
@@ -236,7 +237,6 @@ struct Submitter
         {
             for (int i = 0; i < ans_cnt; ++i)
             {
-                close(to_close_fds[i]);
                 printf("%.6lf ", sent_times[i] - received_time);
 
                 ssize_t start_pos = ans_slices[i].first;
@@ -244,6 +244,13 @@ struct Submitter
                 fwrite(buffer + start_pos, 1, ans_len, stdout);
                 putchar('\n');
             }
+
+            int last_round = cur_round ^ 1;
+            for (int i = 0; to_close_fds[last_round][i] >= 0; ++i)
+                close(to_close_fds[last_round][i]);
+            to_close_fds[cur_round][ans_cnt] = -1;
+            cur_round ^= 1;
+
             gen_submit_fd();
         }
     }
@@ -264,7 +271,7 @@ struct DivideAndConquer
 
         inline void push_back(T val)
         {
-            if (likely(size < MAX_CONTAINER_LEN))
+            if (likely(len < MAX_CONTAINER_LEN))
                 elements[len++] = val;
         }
 
@@ -293,12 +300,13 @@ struct DivideAndConquer
     void init()
     {
 #ifdef FACTOR
-        factor_t dncM = factors[0];
+        dncM = factors[0];
 #else
-        factor_t dncM = M;
+        dncM = M;
 #endif
         enabled = dncM % 2 != 0 && dncM % 5 != 0;
         enabled &= (sizeof(factor_t) == 8);
+        printf("divide and conquer %s\n", enabled ? "enabled" : "disabled");
         if (!enabled)
             return;
 
@@ -317,7 +325,7 @@ struct DivideAndConquer
         // calc powers of 10
         pow10[0] = 1;
         pow_inverse_of_10[0] = 1;
-        for (int i = 0; i <= N; ++i)
+        for (int i = 1; i <= N; ++i)
         {
             pow10[i] = pow10[i - 1] * 10 % dncM;
             pow_inverse_of_10[i] = pow_inverse_of_10[i - 1] * 10 % dncM;
@@ -334,7 +342,8 @@ struct DivideAndConquer
 
     void work(ssize_t range_left, ssize_t range_len)
     {
-        int head = 0, tail = 1;
+        int head = 0;
+        tail = 1;
         dnc_slices[0] = {range_left + 1, range_len - 1};
         while (head < tail)
         {
@@ -353,7 +362,7 @@ struct DivideAndConquer
             {
                 ssize_t start_pos = mid - part1_len;
                 factor_t digit = buffer[start_pos] - '0';
-                if (digit == '0')
+                if (digit == 0)
                     continue;
                 part1 = (part1 + pow10[part1_len - 1] * digit) % dncM;
                 start_pos_dict[part1].push_back(start_pos);
@@ -393,7 +402,7 @@ struct DivideAndConquer
                         if (!is_ans)
                         {
 #ifdef DEBUG
-                            printf("false dnc candidate: start_pos=%ld ans_len=%ld", start_pos, ans_len);
+                            printf("false dnc candidate: start_pos=%ld ans_len=%ld\n", start_pos, ans_len);
 #endif
                             continue;
                         }
@@ -415,7 +424,7 @@ struct DivideAndConquer
         }
     }
 
-    void clear()
+    inline void clear()
     {
         for (int i = 0; i < tail; ++i)
         {
@@ -485,6 +494,9 @@ void on_chunk(ssize_t len)
     if (dnc.enabled)
     {
         dnc.work(pos + 1, len - 1);
+#ifdef DEBUG
+        printf("%.6lf dnc tail %d\n", get_timestamp(), dnc.tail);
+#endif
     }
     else
     {
@@ -528,12 +540,14 @@ void on_chunk(ssize_t len)
 #endif
 
     submitter.on_chunk_done();
+    dnc.clear();
 }
 
 int main()
 {
     assert(sizeof(factor_t) >= 8 && "please define factor_t");
     init();
+    dnc.init();
 
     // {
     //     cpu_set_t mask;

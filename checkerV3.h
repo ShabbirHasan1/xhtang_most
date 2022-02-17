@@ -316,16 +316,6 @@ void on_chunk(ssize_t len)
 
     if (ans_cnt > 0)
     {
-        for (int i = 0; i < ans_cnt; ++i)
-        {
-            printf("%.6lf ", sent_times[i] - received_time);
-
-            ssize_t start_pos = ans_slices[i].first;
-            ssize_t ans_len = ans_slices[i].second;
-            fwrite(buffer + start_pos, 1, ans_len, stdout);
-            putchar('\n');
-        }
-
         constexpr double max_wait = 0.005;
         double start = get_timestamp();
         int closed = 0;
@@ -341,9 +331,16 @@ void on_chunk(ssize_t len)
                 if (remained_bytes == 0 || timeout)
                 {
                     close(to_close_fds[i]);
-                    printf("closed fd %d%s\n", to_close_fds[i], timeout ? "(timeout)" : "");
                     to_close_fds[i] = -1;
                     closed += 1;
+
+                    printf("%.6lf ", sent_times[i] - received_time);
+
+                    ssize_t start_pos = ans_slices[i].first;
+                    ssize_t ans_len = ans_slices[i].second;
+                    fwrite(buffer + start_pos, 1, ans_len, stdout);
+
+                    puts(remained_bytes > 0 ? " (timeout)" : "");
                 }
             }
             if (timeout)

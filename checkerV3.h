@@ -321,55 +321,49 @@ void on_chunk(ssize_t len)
         int sent = 0;
         while (sent < ans_cnt)
         {
-            bool timeout = get_timestamp() - start > max_wait;
+            const bool timeout = get_timestamp() - start > max_wait;
+            const int poll_timeout = timeout ? 0 : 1;
             for (int i = 0; i < ans_cnt; ++i)
             {
                 if (to_close_fds[i] < 0)
                     continue;
                 int fd = submit_fds[to_close_fds[i]];
 
-                bool received, closed;
+                bool received, bad;
                 ssize_t n_read = 0;
                 static char response[MAX_STR_LEN];
-                if (timeout)
+
+                pollfd poll_info;
+                poll_info.fd = fd;
+                poll_info.events = POLLIN;
+
+                int ret = poll(&poll_info, 1, poll_timeout);
+                assert(ret >= 0);
+                if (poll_info.revents & (POLLERR | POLLHUP))
                 {
                     received = false;
-                    closed = true;
+                    bad = true;
+                }
+                else if (poll_info.revents & POLLIN)
+                {
+                    n_read = read(fd, response, sizeof(response));
+                    received = n_read > 0;
+                    bad = n_read == 0 || (n_read < 0 && errno != EAGAIN);
                 }
                 else
                 {
-                    pollfd poll_info;
-                    poll_info.fd = fd;
-                    poll_info.events = POLLIN;
-
-                    int ret = poll(&poll_info, 1, 1);
-                    assert(ret >= 0);
-                    if (poll_info.revents & (POLLERR | POLLHUP))
-                    {
-                        received = false;
-                        closed = true;
-                    }
-                    else if (poll_info.revents & POLLIN)
-                    {
-                        n_read = read(fd, response, sizeof(response));
-                        received = n_read > 0;
-                        closed = false;
-                    }
-                    else
-                    {
-                        received = false;
-                        closed = false;
-                    }
-
-                    if (!received && !closed)
-                    {
-                        int remained_bytes;
-                        ioctl(fd, TIOCOUTQ, &remained_bytes);
-                        received = remained_bytes == 0;
-                    }
+                    received = false;
+                    bad = false;
                 }
 
-                if (received || timeout || closed)
+                if (!received && !bad)
+                {
+                    int remained_bytes;
+                    ioctl(fd, TIOCOUTQ, &remained_bytes);
+                    received = remained_bytes == 0;
+                }
+
+                if (received || timeout || bad)
                 {
                     printf("%.6lf ", sent_times[i] - received_time);
 

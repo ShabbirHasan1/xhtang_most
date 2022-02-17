@@ -182,16 +182,15 @@ struct Submitter
 
         sent_times[ans_cnt] = get_timestamp();
 
-        int submit_fd = submit_fds[next_submit_fd];
 #ifndef DEBUG
+        int submit_fd = submit_fds[next_submit_fd];
         ssize_t write_len = headers_n[ans_len] + ans_len;
         int ret = write(submit_fd, headers[ans_len], write_len);
         assert(ret == write_len && "write incomplete");
 #endif
 
-        //submit_fds[next_submit_fd] = -1;
+        to_close_fds[ans_cnt] = next_submit_fd;
         next_submit_fd = (next_submit_fd + 1) % SUBMIT_FD_N;
-        to_close_fds[ans_cnt] = submit_fd;
 
         assert(ans_len > 0);
         ans_slices[ans_cnt] = {start_pos, ans_len};
@@ -227,6 +226,7 @@ struct Submitter
 
                 // connect
                 connect_to_port(socket_fd, 10002);
+                rt_assert_eq(fcntl(socket_fd, F_SETFL, fcntl(socket_fd, F_GETFL) | O_NONBLOCK), 0);
                 submit_fds[i] = socket_fd;
             }
     }
@@ -235,22 +235,80 @@ struct Submitter
     {
         if (ans_cnt > 0)
         {
+            static pollfd pollfds[MAX_CONTAINER_LEN];
             for (int i = 0; i < ans_cnt; ++i)
             {
-                printf("%.6lf ", sent_times[i] - received_time);
-
-                ssize_t start_pos = ans_slices[i].first;
-                ssize_t ans_len = ans_slices[i].second;
-                fwrite(buffer + start_pos, 1, ans_len, stdout);
-                putchar('\n');
+                pollfds[i].fd = submit_fds[to_close_fds[i]];
+                pollfds[i].events = POLLIN;
+                pollfds[i].revents = 0;
             }
 
-            for (int i = 0; i < ans_cnt; ++i)
+            constexpr double max_wait = 0.005;
+            double start = get_timestamp();
+            int sent = 0;
+            while (sent < ans_cnt)
             {
-                int remained_bytes = 1;
-                while (remained_bytes != 0)
-                    ioctl(to_close_fds[i], TIOCOUTQ, &remained_bytes);
-                close(to_close_fds[i]);
+                const bool timeout = get_timestamp() - start > max_wait;
+                const int poll_timeout = timeout ? 0 : 1;
+                int ret = poll(pollfds, ans_cnt, poll_timeout);
+                assert(ret >= 0);
+                for (int i = 0; i < ans_cnt; ++i)
+                {
+                    if (pollfds[i].fd < 0)
+                        continue;
+                    int fd = pollfds[i].fd;
+
+                    bool received, bad;
+                    ssize_t n_read = 0;
+                    static char response[MAX_STR_LEN];
+                    if (pollfds[i].revents & (POLLERR | POLLHUP))
+                    {
+                        received = false;
+                        bad = true;
+                    }
+                    else if (pollfds[i].revents & POLLIN)
+                    {
+                        n_read = read(fd, response, sizeof(response));
+                        received = n_read > 0;
+                        bad = n_read == 0 || (n_read < 0 && errno != EAGAIN);
+                    }
+                    else
+                    {
+                        received = false;
+                        bad = false;
+                    }
+
+                    if (!received && !bad)
+                    {
+                        int remained_bytes;
+                        ioctl(fd, TIOCOUTQ, &remained_bytes);
+                        received = remained_bytes == 0;
+                    }
+
+                    if (received || timeout || bad)
+                    {
+                        printf("%.6lf ", sent_times[i] - received_time);
+
+                        ssize_t start_pos = ans_slices[i].first;
+                        ssize_t ans_len = ans_slices[i].second;
+                        fwrite(buffer + start_pos, 1, ans_len, stdout);
+
+                        puts(received ? "" : "(timeout)");
+                        if (n_read > 0)
+                        {
+                            response[std::min<ssize_t>(n_read, sizeof(response) - 1)] = '\0';
+                            puts(response);
+                        }
+
+                        if (!received)
+                        {
+                            submit_fds[to_close_fds[i]] = -1;
+                            close(fd);
+                        }
+                        sent += 1;
+                        pollfds[i].fd = -1;
+                    }
+                }
             }
 
             gen_submit_fd();

@@ -33,6 +33,7 @@ namespace std
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#include <sys/ioctl.h>
 
 #define USER "epsilon"
 #define PASSWORD "suu3E5SA"
@@ -315,15 +316,22 @@ void on_chunk(ssize_t len)
 
     if (ans_cnt > 0)
     {
-        for (int i = 0; i < ans_cnt; i++)
+        for (int i = 0; i < ans_cnt; ++i)
         {
-            close(to_close_fds[i]);
             printf("%.6lf ", sent_times[i] - received_time);
 
             ssize_t start_pos = ans_slices[i].first;
             ssize_t ans_len = ans_slices[i].second;
             fwrite(buffer + start_pos, 1, ans_len, stdout);
             putchar('\n');
+        }
+
+        for (int i = 0; i < ans_cnt; ++i)
+        {
+            int remained_bytes = 1;
+            while (remained_bytes != 0)
+                ioctl(to_close_fds[i], TIOCOUTQ, &remained_bytes);
+            close(to_close_fds[i]);
         }
         gen_submit_fd();
     }

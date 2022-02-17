@@ -116,7 +116,7 @@ void update_ans()
             ans_start_pos[part2_len].clear();
         }
         ssize_t max_part1_len = std::min(pos, ssize_t(N - 1));
-        for (ssize_t part1_len = 0; part1_len <= max_part1_len; ++part1_len)
+        for (ssize_t part1_len = 1; part1_len <= max_part1_len; ++part1_len)
         {
             ssize_t start_pos = pos - part1_len;
             if (start_pos < pos && buffer[start_pos] == '0')
@@ -556,7 +556,7 @@ void on_chunk(ssize_t len)
 
     if (dnc.enabled)
     {
-        dnc.work(pos + 1, len - 1);
+        dnc.work(pos, len);
     }
     else
     {

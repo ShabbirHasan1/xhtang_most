@@ -326,16 +326,28 @@ void on_chunk(ssize_t len)
             putchar('\n');
         }
 
-        for (int i = 0; i < ans_cnt; ++i)
+        constexpr double max_wait = 0.005;
+        double start = get_timestamp();
+        int closed = 0;
+        while (closed < ans_cnt)
         {
-            printf("closing fd %d\n", to_close_fds[i]);
-            int remained_bytes = 1;
-            while (remained_bytes != 0)
+            bool timeout = get_timestamp() - start > max_wait;
+            for (int i = 0; i < ans_cnt; ++i)
             {
+                if (to_close_fds[i] < 0)
+                    continue;
+                int remained_bytes;
                 ioctl(to_close_fds[i], TIOCOUTQ, &remained_bytes);
+                if (remained_bytes == 0 || timeout)
+                {
+                    close(to_close_fds[i]);
+                    printf("closed fd %d%s\n", to_close_fds[i], timeout ? "(timeout)" : "");
+                    to_close_fds[i] = -1;
+                    closed += 1;
+                }
             }
-            close(to_close_fds[i]);
-            printf("closed fd %d\n", to_close_fds[i]);
+            if (timeout)
+                break;
         }
         gen_submit_fd();
     }

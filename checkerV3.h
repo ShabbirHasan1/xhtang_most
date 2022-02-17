@@ -328,23 +328,48 @@ void on_chunk(ssize_t len)
                     continue;
                 int fd = submit_fds[to_close_fds[i]];
 
+                bool received, closed;
+                ssize_t n_read = 0;
                 static char response[MAX_STR_LEN];
-                ssize_t n_read = read(fd, response, sizeof(response));
-                bool read_again = n_read < 0 && errno == EAGAIN;
-
-                bool received;
-                if (n_read > 0)
+                if (timeout)
                 {
-                    received = true;
+                    received = false;
+                    closed = true;
                 }
                 else
                 {
-                    int remained_bytes;
-                    ioctl(fd, TIOCOUTQ, &remained_bytes);
-                    received = remained_bytes == 0;
+                    pollfd poll_info;
+                    poll_info.fd = fd;
+                    poll_info.events = POLLIN;
+
+                    int ret = poll(&poll_info, 1, 1);
+                    assert(ret >= 0);
+                    if (poll_info.revents & (POLLERR | POLLHUP))
+                    {
+                        received = false;
+                        closed = true;
+                    }
+                    else if (poll_info.revents & POLLIN)
+                    {
+                        n_read = read(fd, response, sizeof(response));
+                        received = n_read > 0;
+                        closed = false;
+                    }
+                    else
+                    {
+                        received = false;
+                        closed = false;
+                    }
+
+                    if (!received && !closed)
+                    {
+                        int remained_bytes;
+                        ioctl(fd, TIOCOUTQ, &remained_bytes);
+                        received = remained_bytes == 0;
+                    }
                 }
 
-                if (received || timeout || !read_again)
+                if (received || timeout || closed)
                 {
                     printf("%.6lf ", sent_times[i] - received_time);
 

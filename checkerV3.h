@@ -346,6 +346,7 @@ void on_chunk(ssize_t len)
                     puts(received ? "" : "(timeout)");
                     if (n_read > 0)
                     {
+                        response[std::min<ssize_t>(n_read, sizeof(response) - 1)] = '\0';
                         puts(response);
                     }
 
@@ -358,8 +359,6 @@ void on_chunk(ssize_t len)
                     to_close_fds[i] = -1;
                 }
             }
-            if (timeout)
-                break;
         }
         gen_submit_fd();
     }

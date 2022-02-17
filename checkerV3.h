@@ -328,13 +328,22 @@ void on_chunk(ssize_t len)
                     continue;
                 int fd = submit_fds[to_close_fds[i]];
 
-                int remained_bytes;
-                ioctl(fd, TIOCOUTQ, &remained_bytes);
-
                 static char response[MAX_STR_LEN];
                 ssize_t n_read = read(fd, response, sizeof(response));
                 bool read_again = n_read < 0 && errno == EAGAIN;
-                bool received = remained_bytes == 0 || n_read > 0;
+
+                bool received;
+                if (n_read > 0)
+                {
+                    received = true;
+                }
+                else
+                {
+                    int remained_bytes;
+                    ioctl(fd, TIOCOUTQ, &remained_bytes);
+                    received = remained_bytes == 0;
+                }
+
                 if (received || timeout || !read_again)
                 {
                     printf("%.6lf ", sent_times[i] - received_time);

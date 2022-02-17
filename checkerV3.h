@@ -349,16 +349,13 @@ void on_chunk(ssize_t len)
                         puts(response);
                     }
 
-                    if (received)
-                    {
-                        sent += 1;
-                        to_close_fds[i] = -1;
-                    }
-                    else
+                    if (!received)
                     {
                         submit_fds[to_close_fds[i]] = -1;
                         close(fd);
                     }
+                    sent += 1;
+                    to_close_fds[i] = -1;
                 }
             }
             if (timeout)

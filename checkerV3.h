@@ -328,13 +328,14 @@ void on_chunk(ssize_t len)
 
         for (int i = 0; i < ans_cnt; ++i)
         {
+            printf("closing fd %d\n", to_close_fds[i]);
             int remained_bytes = 1;
             while (remained_bytes != 0)
             {
                 ioctl(to_close_fds[i], TIOCOUTQ, &remained_bytes);
-                printf("connection %d remained bytes %d\n", i, remained_bytes);
             }
             close(to_close_fds[i]);
+            printf("closed fd %d\n", to_close_fds[i]);
         }
         gen_submit_fd();
     }

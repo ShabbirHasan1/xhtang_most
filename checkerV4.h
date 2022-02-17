@@ -554,9 +554,6 @@ void on_chunk(ssize_t len)
     if (dnc.enabled)
     {
         dnc.work(pos + 1, len - 1);
-#ifdef DEBUG
-        printf("%.6lf dnc tail %d\n", get_timestamp(), dnc.tail);
-#endif
     }
     else
     {

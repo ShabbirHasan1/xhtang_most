@@ -295,8 +295,8 @@ void on_chunk(ssize_t len)
 
                 sent_times[ans_cnt] = get_timestamp();
 
-                int submit_fd = submit_fds[next_submit_fd];
 #ifndef DEBUG
+                int submit_fd = submit_fds[next_submit_fd];
                 ssize_t write_len = headers_n[ans_len] + ans_len;
                 int ret = write(submit_fd, headers[ans_len], write_len);
                 assert(ret == write_len && "write incomplete");
@@ -328,26 +328,34 @@ void on_chunk(ssize_t len)
                 int remained_bytes;
                 int fd = submit_fds[to_close_fds[i]];
                 ioctl(fd, TIOCOUTQ, &remained_bytes);
-                if (remained_bytes == 0 || timeout)
-                {
-                    if (remained_bytes > 0)
-                    {
-                        close(fd);
-                        submit_fds[to_close_fds[i]] = -1;
-                    }
-                    else
-                    {
-                        sent += 1;
-                        to_close_fds[i] = -1;
-                    }
 
+                static char response[MAX_STR_LEN];
+                ssize_t n_read = read(fd, response, sizeof(response));
+                const char *read_error = "";
+                if (n_read < 0)
+                {
+                    if (errno != EAGAIN)
+                        read_error = "read failed";
+                }
+                else if (n_read == 0)
+                {
+                    read_error = "EOF";
+                }
+
+                if (remained_bytes == 0 || timeout || read_error || n_read > 0)
+                {
                     printf("%.6lf ", sent_times[i] - received_time);
 
                     ssize_t start_pos = ans_slices[i].first;
                     ssize_t ans_len = ans_slices[i].second;
                     fwrite(buffer + start_pos, 1, ans_len, stdout);
 
-                    puts(remained_bytes > 0 ? " (timeout)" : "");
+                    puts(remained_bytes > 0 && (timeout || read_error || n_read == 0) ? " (timeout)" : "");
+
+                    if (n_read > 0)
+                    {
+                        puts(response);
+                    }
                 }
             }
             if (timeout)

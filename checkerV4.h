@@ -388,7 +388,8 @@ struct DivideAndConquer
         for (int i = 1; i <= N; ++i)
         {
             pow10[i] = pow10[i - 1] * 10 % dncM;
-            pow_inverse_of_10[i] = pow_inverse_of_10[i - 1] * 10 % dncM;
+            pow_inverse_of_10[i] = sqr_factor_t(pow_inverse_of_10[i - 1]) * sqr_factor_t(inverse_of_10) % sqr_factor_t(dncM);
+            assert(sqr_factor_t(pow10[i]) * sqr_factor_t(pow_inverse_of_10[i]) % sqr_factor_t(dncM) == 1);
         }
 
         // end condition of D&C
@@ -404,7 +405,7 @@ struct DivideAndConquer
     {
         int head = 0;
         tail = 1;
-        dnc_slices[0] = {range_left + 1, range_len - 1};
+        dnc_slices[0] = {range_left, range_len};
         while (head < tail)
         {
             ssize_t left = dnc_slices[head].first;
@@ -436,7 +437,9 @@ struct DivideAndConquer
 
                 factor_t expected_part1 = sqr_factor_t(part2) * sqr_factor_t(pow_inverse_of_10[part2_len]) % sqr_factor_t(dncM);
                 expected_part1 = (dncM - expected_part1) % dncM;
-
+#ifdef DEBUG
+                assert((sqr_factor_t(expected_part1) * sqr_factor_t(pow10[part2_len]) + sqr_factor_t(part2)) % sqr_factor_t(dncM) == 0);
+#endif
                 auto it = start_pos_dict.find(expected_part1);
                 if (it != start_pos_dict.end())
                 {

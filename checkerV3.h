@@ -243,16 +243,14 @@ void on_chunk(ssize_t len)
 
             sent_times[ans_cnt] = get_timestamp();
 
-            int submit_fd = submit_fds[next_submit_fd];
 #ifndef DEBUG
+            int submit_fd = submit_fds[next_submit_fd];
             ssize_t write_len = headers_n[ans_len] + ans_len;
             int ret = write(submit_fd, headers[ans_len], write_len);
             assert(ret == write_len && "write incomplete");
 #endif
-
-            submit_fds[next_submit_fd] = -1;
+            to_close_fds[ans_cnt] = next_submit_fd;
             next_submit_fd = (next_submit_fd + 1) % SUBMIT_FD_N;
-            to_close_fds[ans_cnt] = submit_fd;
 
             assert(ans_len > 0);
             ans_slices[ans_cnt] = std::make_pair(start_pos, ans_len);
@@ -316,6 +314,14 @@ void on_chunk(ssize_t len)
 
     if (ans_cnt > 0)
     {
+        static pollfd pollfds[MAX_CONTAINER_LEN];
+        for (int i = 0; i < ans_cnt; ++i)
+        {
+            pollfds[i].fd = submit_fds[to_close_fds[i]];
+            pollfds[i].events = POLLIN;
+            pollfds[i].revents = 0;
+        }
+
         constexpr double max_wait = 0.005;
         double start = get_timestamp();
         int sent = 0;
@@ -323,28 +329,23 @@ void on_chunk(ssize_t len)
         {
             const bool timeout = get_timestamp() - start > max_wait;
             const int poll_timeout = timeout ? 0 : 1;
+            int ret = poll(pollfds, ans_cnt, poll_timeout);
+            assert(ret >= 0);
             for (int i = 0; i < ans_cnt; ++i)
             {
-                if (to_close_fds[i] < 0)
+                if (pollfds[i].fd < 0)
                     continue;
-                int fd = submit_fds[to_close_fds[i]];
+                int fd = pollfds[i].fd;
 
                 bool received, bad;
                 ssize_t n_read = 0;
                 static char response[MAX_STR_LEN];
-
-                pollfd poll_info;
-                poll_info.fd = fd;
-                poll_info.events = POLLIN;
-
-                int ret = poll(&poll_info, 1, poll_timeout);
-                assert(ret >= 0);
-                if (poll_info.revents & (POLLERR | POLLHUP))
+                if (pollfds[i].revents & (POLLERR | POLLHUP))
                 {
                     received = false;
                     bad = true;
                 }
-                else if (poll_info.revents & POLLIN)
+                else if (pollfds[i].revents & POLLIN)
                 {
                     n_read = read(fd, response, sizeof(response));
                     received = n_read > 0;
@@ -384,7 +385,7 @@ void on_chunk(ssize_t len)
                         close(fd);
                     }
                     sent += 1;
-                    to_close_fds[i] = -1;
+                    pollfds[i].fd = -1;
                 }
             }
         }

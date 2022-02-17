@@ -96,6 +96,7 @@ void connect_to_port(int socket_fd, int port)
     rt_assert_eq(inet_pton(AF_INET, SERVER_IP, &addr_v4->sin_addr), 1);
 
     rt_assert_eq(connect(socket_fd, (struct sockaddr *)addr_v4, sizeof(*addr_v4)), 0);
+    rt_assert_eq(fcntl(socket_fd, F_SETFL, fcntl(socket_fd, F_GETFL) | O_NONBLOCK), 0);
 }
 
 // 生成提交所使用的TCP连接池
@@ -413,9 +414,6 @@ int main()
 
     // main loop
     {
-        // 非阻塞
-        rt_assert_eq(fcntl(socket_fd, F_SETFL, fcntl(socket_fd, F_GETFL) | O_NONBLOCK), 0);
-
         pollfd poll_info;
         poll_info.fd = socket_fd;
         poll_info.events = POLLIN;

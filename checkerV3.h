@@ -326,24 +326,16 @@ void on_chunk(ssize_t len)
             {
                 if (to_close_fds[i] < 0)
                     continue;
-                int remained_bytes;
                 int fd = submit_fds[to_close_fds[i]];
+
+                int remained_bytes;
                 ioctl(fd, TIOCOUTQ, &remained_bytes);
 
                 static char response[MAX_STR_LEN];
                 ssize_t n_read = read(fd, response, sizeof(response));
-                const char *read_error = "";
-                if (n_read < 0)
-                {
-                    if (errno != EAGAIN)
-                        read_error = "read failed";
-                }
-                else if (n_read == 0)
-                {
-                    read_error = "EOF";
-                }
-
-                if (remained_bytes == 0 || timeout || read_error || n_read > 0)
+                bool read_again = n_read < 0 && errno == EAGAIN;
+                bool received = remained_bytes == 0 || n_read > 0;
+                if (received || timeout || !read_again)
                 {
                     printf("%.6lf ", sent_times[i] - received_time);
 
@@ -351,11 +343,21 @@ void on_chunk(ssize_t len)
                     ssize_t ans_len = ans_slices[i].second;
                     fwrite(buffer + start_pos, 1, ans_len, stdout);
 
-                    puts(remained_bytes > 0 && (timeout || read_error || n_read == 0) ? " (timeout)" : "");
-
+                    puts(received ? "" : "(timeout)");
                     if (n_read > 0)
                     {
                         puts(response);
+                    }
+
+                    if (received)
+                    {
+                        sent += 1;
+                        to_close_fds[i] = -1;
+                    }
+                    else
+                    {
+                        submit_fds[to_close_fds[i]] = -1;
+                        close(fd);
                     }
                 }
             }

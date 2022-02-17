@@ -330,7 +330,10 @@ void on_chunk(ssize_t len)
         {
             int remained_bytes = 1;
             while (remained_bytes != 0)
+            {
                 ioctl(to_close_fds[i], TIOCOUTQ, &remained_bytes);
+                printf("connection %d remained bytes %d\n", i, remained_bytes);
+            }
             close(to_close_fds[i]);
         }
         gen_submit_fd();

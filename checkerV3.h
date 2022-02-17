@@ -302,9 +302,8 @@ void on_chunk(ssize_t len)
                 assert(ret == write_len && "write incomplete");
 #endif
 
-                submit_fds[next_submit_fd] = -1;
+                to_close_fds[ans_cnt] = next_submit_fd;
                 next_submit_fd = (next_submit_fd + 1) % SUBMIT_FD_N;
-                to_close_fds[ans_cnt] = submit_fd;
 
                 assert(ans_len > 0);
                 ans_slices[ans_cnt] = std::make_pair(start_pos, ans_len);
@@ -318,8 +317,8 @@ void on_chunk(ssize_t len)
     {
         constexpr double max_wait = 0.005;
         double start = get_timestamp();
-        int closed = 0;
-        while (closed < ans_cnt)
+        int sent = 0;
+        while (sent < ans_cnt)
         {
             bool timeout = get_timestamp() - start > max_wait;
             for (int i = 0; i < ans_cnt; ++i)
@@ -327,12 +326,20 @@ void on_chunk(ssize_t len)
                 if (to_close_fds[i] < 0)
                     continue;
                 int remained_bytes;
-                ioctl(to_close_fds[i], TIOCOUTQ, &remained_bytes);
+                int fd = submit_fds[to_close_fds[i]];
+                ioctl(fd, TIOCOUTQ, &remained_bytes);
                 if (remained_bytes == 0 || timeout)
                 {
-                    close(to_close_fds[i]);
-                    to_close_fds[i] = -1;
-                    closed += 1;
+                    if (remained_bytes > 0)
+                    {
+                        close(fd);
+                        submit_fds[to_close_fds[i]] = -1;
+                    }
+                    else
+                    {
+                        sent += 1;
+                        to_close_fds[i] = -1;
+                    }
 
                     printf("%.6lf ", sent_times[i] - received_time);
 

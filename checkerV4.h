@@ -444,6 +444,9 @@ struct DivideAndConquer
                     {
                         ssize_t start_pos = it->second[i];
                         ssize_t ans_len = end_pos - start_pos;
+#ifdef DEBUG
+                        printf("dnc candidate: start_pos=%ld ans_len=%ld\n", start_pos, ans_len);
+#endif
 #ifdef FACTOR
                         bool is_ans = true;
                         for (int i_factor = 1; i_factor < n_factor; ++i_factor)
@@ -461,9 +464,6 @@ struct DivideAndConquer
                         }
                         if (!is_ans)
                         {
-#ifdef DEBUG
-                            printf("false dnc candidate: start_pos=%ld ans_len=%ld\n", start_pos, ans_len);
-#endif
                             continue;
                         }
 #endif

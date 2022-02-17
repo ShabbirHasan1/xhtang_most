@@ -1,10 +1,10 @@
 from collections import defaultdict
 from decimal import DivisionByZero
-from email.policy import default
 from functools import lru_cache
 from datetime import date, datetime
 import time
 import requests
+import sys
 
 import pandas as pd
 
@@ -25,7 +25,7 @@ M = [
     (2 ** 55) * (3 ** 35) * (7 ** 20),
 ]
 
-USER = 'epsilon'
+USER = 'epsilon' if len(sys.argv) == 1 else sys.argv[1]
 
 
 def log(*args):

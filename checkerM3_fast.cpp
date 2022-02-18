@@ -8,13 +8,13 @@
 // #define FACTOR
 // const int n_factor = 3;
 // factor_t factors[n_factor] = {
-//     500000000000000021ULL,
-//     500000000000000107ULL,
-//     500000000000000131ULL,
+// 500000000000000147ULL,
+// 500000000000000207ULL,
+// 500000000000000209ULL,
 // };
 
 // only check one factor
-factor_t M = 500000000000000021ULL;
+factor_t M = 500000000000000147ULL;
 
 void init()
 {

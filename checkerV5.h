@@ -12,7 +12,6 @@
 
 using std::pair;
 using std::unordered_map;
-using std::vector;
 
 namespace std
 {
@@ -457,7 +456,7 @@ struct Checker : public IChecker
     Stage stage;
 
     // ans_start_pos[part2_len]: moded value => ans start positions
-    unordered_map<factor_t, vector<ssize_t>> ans_start_pos[N + 10];
+    unordered_map<factor_t, SmallVector<ssize_t>> ans_start_pos[N + 10];
 
     DivideAndConquer<factor_t, ending_zero> dnc;
 
@@ -519,8 +518,9 @@ struct Checker : public IChecker
             if (it == possible_start_pos.end())
                 continue;
 
-            for (ssize_t start_pos : it->second)
+            for (int i = 0; i < it->second.size(); ++i)
             {
+                ssize_t start_pos = it->second[i];
                 ssize_t ans_len = pos + part2_len - start_pos;
                 if (ans_len <= N)
                 {
@@ -597,6 +597,7 @@ void on_chunk(ssize_t len)
     {
         checkers[i]->on_chunk(len);
     }
+    sched_yield();
     for (int i = 0; i < N_CHECKER; ++i)
     {
         if (checkers[i]->get_stage() == DNC)
@@ -612,6 +613,7 @@ void on_chunk(ssize_t len)
         }
     }
 
+    sched_yield();
     pos += len;
     for (int i = 0; i < N_CHECKER; ++i)
     {
@@ -624,23 +626,7 @@ void on_chunk(ssize_t len)
 
 int main()
 {
-    int n_checkers = 0;
-    {
-        printf("init M1 checker\n");
-        // 2022021721441 * 10
-        checkers[n_checkers++] = new Checker<uint64_t, true>(2022021721441);
-    }
-    {
-        printf("init M2 checker\n");
-        typedef __uint128_t factor_t;
-        factor_t M = 0;
-        char m[] = "104648257118348370704723119";
-        for (size_t i = 0; i < sizeof(m); ++i)
-            M = M * 10 + m[i] - '0';
-        checkers[n_checkers++] = new Checker<factor_t>(M);
-    }
-    N_CHECKER = n_checkers;
-
+    init();
     submitter.gen_submit_fd();
 
     int socket_fd = socket(AF_INET, SOCK_STREAM, 0);

@@ -503,7 +503,7 @@ struct Checker : public IChecker
 
     void on_chunk(ssize_t len)
     {
-        int original_ans_cnt = submitter.ans_cnt;
+        bool submitted = false;
 
         factor_t part2 = 0;
         ssize_t max_part2_len = std::min<ssize_t>(len, N - 1);
@@ -523,10 +523,11 @@ struct Checker : public IChecker
             {
                 ssize_t ans_len = pos + part2_len - start_pos;
                 submitter.submit(start_pos, ans_len, SCAN);
+                submitted = true;
             }
         }
 
-        if (submitter.ans_cnt == original_ans_cnt)
+        if (submitted)
         {
             stage = dnc.enabled ? DNC : LOOP;
         }

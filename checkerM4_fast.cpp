@@ -3,7 +3,7 @@
 #include <cassert>
 #include <algorithm>
 
-#define factor_t __uint128_t
+#define factor_t uint64_t
 
 factor_t M = 0;
 
@@ -12,7 +12,7 @@ void init()
     const int n_factor = 3;
     factor_t factors[n_factor];
     const int factor_base[] = {3, 7, 11};
-    const int powers[] = {50, 30, 20};
+    const int powers[] = {35, 20, 15}; // {50, 30, 20};
     for (int i_factor = 0; i_factor < n_factor; ++i_factor)
     {
         factors[i_factor] = 1;

@@ -584,7 +584,11 @@ struct Checker : public IChecker
     }
 };
 
+#ifdef DEBUG
+constexpr int N_CHECKER = 2;
+#else
 constexpr int N_CHECKER = 4;
+#endif
 IChecker *checkers[N_CHECKER];
 void on_chunk(ssize_t len)
 {
@@ -619,10 +623,12 @@ void on_chunk(ssize_t len)
 
 int main()
 {
+    int n_checkers = 0;
     {
         printf("init M1 checker\n");
-        checkers[0] = new Checker<uint64_t>(20220217214410);
+        checkers[n_checkers++] = new Checker<uint64_t>(20220217214410);
     }
+#ifndef DEBUG
     {
         printf("init M2 checker\n");
         typedef __uint128_t factor_t;
@@ -630,12 +636,14 @@ int main()
         char m[] = "104648257118348370704723119";
         for (size_t i = 0; i < sizeof(m); ++i)
             M = M * 10 + m[i] - '0';
-        checkers[1] = new Checker<factor_t>(M);
+        checkers[n_checkers++] = new Checker<factor_t>(M);
     }
+#endif
     {
         printf("init M3 checker\n");
-        checkers[2] = new Checker<uint64_t>(500000000000000147ULL);
+        checkers[n_checkers++] = new Checker<uint64_t>(500000000000000147ULL);
     }
+#ifndef DEBUG
     {
         printf("init M4 checker\n");
         const int n_factor = 3;
@@ -652,8 +660,9 @@ int main()
                 assert(factors[i_factor] < UINT64_MAX / 15);
             }
         }
-        checkers[3] = new Checker<factor_t>(factors[2]);
+        checkers[n_checkers++] = new Checker<factor_t>(factors[2]);
     }
+#endif
 
     submitter.gen_submit_fd();
 

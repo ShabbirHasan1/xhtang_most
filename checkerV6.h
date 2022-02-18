@@ -344,7 +344,7 @@ struct DivideAndConquer
         {
             len_dncM += 1;
         }
-        assert(len_dncM > 10);
+        assert(len_dncM > sizeof(factor_t));
     }
 
     void work(ssize_t range_left, ssize_t range_len)

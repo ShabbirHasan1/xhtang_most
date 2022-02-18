@@ -29,4 +29,4 @@ void init()
     M = factors[0];
 }
 
-#include "checkerV3.h"
+#include "checkerV4.h"

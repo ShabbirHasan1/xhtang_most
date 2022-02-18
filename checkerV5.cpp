@@ -422,6 +422,7 @@ struct DivideAndConquer
         for (int i = 0; i < tail; ++i)
         {
             start_pos_dicts[i].clear();
+            start_pos_dicts[i].reserve(N);
         }
     }
 };

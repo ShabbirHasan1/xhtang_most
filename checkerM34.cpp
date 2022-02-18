@@ -11,8 +11,8 @@ void init()
         printf("init M4 checker\n");
         const int n_factor = 3;
         const int factor_base[] = {3, 7, 11};
-        const int powers[] = {35, 20, 15}; // {50, 30, 20};
-        typedef uint64_t factor_t;
+        const int powers[] = {16, 10, 8}; // {50, 30, 20};
+        typedef uint32_t factor_t;
         factor_t factors[n_factor];
         for (int i_factor = 0; i_factor < n_factor; ++i_factor)
         {
@@ -20,7 +20,7 @@ void init()
             for (int j = 0; j < powers[i_factor]; ++j)
             {
                 factors[i_factor] *= factor_base[i_factor];
-                assert(factors[i_factor] < UINT64_MAX / 15);
+                assert(factors[i_factor] < UINT32_MAX / 15);
             }
         }
         checkers[n_checkers++] = new Checker<factor_t>(factors[2]);

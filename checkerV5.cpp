@@ -498,7 +498,8 @@ struct Checker : public IChecker
         int original_ans_cnt = submitter.ans_cnt;
 
         factor_t part2 = 0;
-        for (ssize_t part2_len = 1; part2_len <= len; ++part2_len)
+        ssize_t max_part2_len = std::min<ssize_t>(len, N - 1);
+        for (ssize_t part2_len = 1; part2_len <= max_part2_len; ++part2_len)
         {
             factor_t digit = buffer[pos + part2_len - 1] - '0';
             part2 = (part2 * 10 + digit) % M;

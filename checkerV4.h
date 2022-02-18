@@ -26,6 +26,7 @@ namespace std
     };
 }
 
+#include <sched.h>
 #include <poll.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -559,6 +560,11 @@ void on_chunk(ssize_t len)
         }
     }
 
+    if (submitter.ans_cnt == 0)
+    {
+        sched_yield();
+    }
+
     if (dnc.enabled)
     {
         dnc.work(pos, len);
@@ -603,8 +609,8 @@ void on_chunk(ssize_t len)
         }
     }
 #endif
-    // yield CPU to others
-    usleep(10000);
+
+    sched_yield();
     submitter.on_chunk_done();
     dnc.clear();
 }

@@ -393,9 +393,9 @@ struct DivideAndConquer
             {
                 ssize_t end_pos = mid + part2_len;
                 factor_t digit = buffer[end_pos - 1] - '0';
-                if (ending_zero && digit == 0)
-                    continue;
                 part2 = (part2 * 10 + digit) % dncM;
+                if (ending_zero && digit != 0)
+                    continue;
 
                 factor_t expected_part1 = sqr_factor_t(part2) * sqr_factor_t(pow_inverse_of_10[part2_len]) % sqr_factor_t(dncM);
                 expected_part1 = (dncM - expected_part1) % dncM;
@@ -508,6 +508,8 @@ struct Checker : public IChecker
         {
             factor_t digit = buffer[pos + part2_len - 1] - '0';
             part2 = (part2 * 10 + digit) % M;
+            if (ending_zero && digit != 0)
+                continue;
 
             auto &possible_start_pos = ans_start_pos[part2_len];
             auto it = possible_start_pos.find(part2);
@@ -516,7 +518,7 @@ struct Checker : public IChecker
 
             for (ssize_t start_pos : it->second)
             {
-                if (buffer[start_pos] == '0' || (ending_zero && digit != 0))
+                if (buffer[start_pos] == '0')
                     continue;
                 ssize_t ans_len = pos + part2_len - start_pos;
                 submitter.submit(start_pos, ans_len, SCAN);
@@ -558,7 +560,9 @@ struct Checker : public IChecker
                 {
                     factor_t digit = buffer[start_pos + ans_len - 1] - '0';
                     val = (val * 10 + digit) % M;
-                    if (val == 0 && (!ending_zero || digit == 0))
+                    if (ending_zero && digit != 0)
+                        continue;
+                    if (val == 0)
                     {
                         submitter.submit(start_pos, ans_len, LOOP);
                     }

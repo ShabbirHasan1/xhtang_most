@@ -34,12 +34,12 @@ with requests.Session().get("http://172.1.1.119:10001",
                 continue
             num = int(s[i:])
             res = num
-            cnt = {2: 0, 3: 0, 7: 0}
+            cnt = {3: 0, 7: 0, 11: 0}
             for mod in cnt:
                 while res % mod == 0:
                     res //= mod
                     cnt[mod] += 1
-            power_cnt[(cnt[2], cnt[3], cnt[7])] += 1
+            power_cnt[(cnt[3], cnt[7], cnt[11])] += 1
         now = time.time()
         if now - last_print > 5:
             last_print = now

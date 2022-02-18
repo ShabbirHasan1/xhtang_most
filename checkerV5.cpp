@@ -145,6 +145,7 @@ struct Submitter
     // 生成提交所使用的TCP连接池
     void gen_submit_fd()
     {
+#ifndef DEBUG
         for (int i = 0; i < SUBMIT_FD_N; i++)
             if (submit_fds[i] < 0)
             {
@@ -167,12 +168,26 @@ struct Submitter
                 rt_assert_eq(fcntl(socket_fd, F_SETFL, fcntl(socket_fd, F_GETFL) | O_NONBLOCK), 0);
                 submit_fds[i] = socket_fd;
             }
+#endif
     }
 
     void on_chunk_done()
     {
         if (ans_cnt > 0)
         {
+#ifdef DEBUG
+            for(int i = 0; i < ans_cnt; ++i)
+            {
+                {
+                    printf("%.6lf ", sent_times[i] - received_time);
+
+                    ssize_t start_pos = ans_slices[i].first;
+                    ssize_t ans_len = ans_slices[i].second;
+                    fwrite(buffer + start_pos, 1, ans_len, stdout);
+                    putchar('\n');
+                }
+            }
+#else
             static pollfd pollfds[MAX_CONTAINER_LEN];
             for (int i = 0; i < ans_cnt; ++i)
             {
@@ -248,6 +263,7 @@ struct Submitter
                     }
                 }
             }
+#endif
 
             gen_submit_fd();
         }
@@ -595,6 +611,7 @@ void on_chunk(ssize_t len)
         checkers[i]->on_chunk_done();
     }
 
+    std::random_shuffle(checkers, checkers + N_CHECKER);
     submitter.on_chunk_done();
 }
 

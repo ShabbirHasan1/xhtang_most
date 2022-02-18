@@ -6,7 +6,7 @@ if [[ $1 == "" ]]; then
 fi
 
 server='172.1.1.119'
-if [[ $1 == "board"]]; then
+if [[ $1 == "board" ]]; then
     curl $server:10000/board.txt
 elif [[ $1 == "most" ]]; then
     curl $server:10000/most.txt

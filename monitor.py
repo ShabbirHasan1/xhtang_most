@@ -13,7 +13,7 @@ problem_def = [
     'M1 = 20220217214410',
     'M2 = 104648257118348370704723119',
     'M3 = 125000000000000140750000000000052207500000000006359661',
-    'M4 = a hidden but fixed integer, whose prime factors include and only include 2, 3 and 7',
+    'M4 = a hidden but fixed integer, whose prime factors include and only include 3, 7 and 11',
     '',
 ]
 
@@ -22,7 +22,7 @@ M = [
     20220217214410,
     104648257118348370704723119,
     125000000000000140750000000000052207500000000006359661,
-    (2 ** 0) * (3 ** 50) * (7 ** 30),
+    (3 ** 50) * (7 ** 30) * (11 ** 20),
 ]
 
 USER = 'epsilon' if len(sys.argv) == 1 else sys.argv[1]

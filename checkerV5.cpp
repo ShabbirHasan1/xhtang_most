@@ -642,11 +642,11 @@ int main()
             M = M * 10 + m[i] - '0';
         checkers[n_checkers++] = new Checker<factor_t>(M);
     }
+#endif
     {
         printf("init M3 checker\n");
         checkers[n_checkers++] = new Checker<uint64_t>(500000000000000147ULL);
     }
-#endif
 #ifndef DEBUG
     {
         printf("init M4 checker\n");

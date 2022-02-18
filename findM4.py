@@ -11,12 +11,12 @@ PASSWORD = 'suu3E5SA'
 
 
 def is_submit(powers):
-    return powers[2] >= 20
+    return powers[2] >= 30
     #return powers[0] >= 55 and powers[1] >= 35 and powers[2] >= 20
 
 
 def is_ans(powers):
-    return powers[0] >= 75 and powers[1] >= 50 and powers[2] >= 25
+    return powers[0] >= 0 and powers[1] >= 50 and powers[2] >= 30
 
 
 with requests.Session().get("http://172.1.1.119:10001",

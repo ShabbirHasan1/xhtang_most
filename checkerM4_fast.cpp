@@ -12,7 +12,7 @@ void init()
     const int n_factor = 3;
     factor_t factors[n_factor];
     const int factor_base[] = {2, 3, 7};
-    const int powers[] = {55, 35, 20}; // reduce from {75, 50, 25} to fit in uint64_t
+    const int powers[] = {0, 35, 20}; // reduce from {75, 50, 25} to fit in uint64_t
     for (int i_factor = 0; i_factor < n_factor; ++i_factor)
     {
         factors[i_factor] = 1;

@@ -27,4 +27,4 @@ void init()
     std::swap(factors[0], factors[2]);
 }
 
-#include "checkerV3.h"
+#include "checkerV4.h"

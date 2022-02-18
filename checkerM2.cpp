@@ -11,4 +11,4 @@ void init()
         M = M * 10 + factor_t(*c - '0');
 }
 
-#include "checkerV3.h"
+#include "checkerV4.h"

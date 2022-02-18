@@ -611,6 +611,8 @@ void on_chunk(ssize_t len)
             checkers[i]->p2_calc(len);
         }
     }
+
+    pos += len;
     for (int i = 0; i < N_CHECKER; ++i)
     {
         checkers[i]->on_chunk_done();
@@ -727,7 +729,6 @@ int main()
             }
 
             on_chunk(n);
-            pos += n;
             // handle page fault ahead
             memset(buffer + pos, 'f', MAX_CHUNK);
         }

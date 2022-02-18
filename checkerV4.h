@@ -604,7 +604,7 @@ void on_chunk(ssize_t len)
     }
 #endif
     // yield CPU to others
-    usleep(5000);
+    usleep(10000);
     submitter.on_chunk_done();
     dnc.clear();
 }

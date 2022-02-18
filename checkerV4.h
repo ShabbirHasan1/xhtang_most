@@ -178,6 +178,8 @@ struct Submitter
 
     inline void submit(ssize_t start_pos, ssize_t ans_len)
     {
+        if (ans_cnt >= SUBMIT_FD_N)
+            return;
         memcpy(headers[ans_len] + headers_n[ans_len], buffer + start_pos, ans_len);
 
         sent_times[ans_cnt] = get_timestamp();
@@ -601,7 +603,8 @@ void on_chunk(ssize_t len)
         }
     }
 #endif
-
+    // yield CPU to others
+    usleep(5000);
     submitter.on_chunk_done();
     dnc.clear();
 }

@@ -308,7 +308,7 @@ public:
     }
 };
 
-template <typename factor_t>
+template <typename factor_t, bool ending_zero>
 struct DivideAndConquer
 {
     bool enabled = false;
@@ -393,6 +393,8 @@ struct DivideAndConquer
             {
                 ssize_t end_pos = mid + part2_len;
                 factor_t digit = buffer[end_pos - 1] - '0';
+                if (ending_zero && digit == 0)
+                    continue;
                 part2 = (part2 * 10 + digit) % dncM;
 
                 factor_t expected_part1 = sqr_factor_t(part2) * sqr_factor_t(pow_inverse_of_10[part2_len]) % sqr_factor_t(dncM);
@@ -445,7 +447,7 @@ struct IChecker
     virtual void on_chunk_done() = 0;
 };
 
-template <typename factor_t>
+template <typename factor_t, bool ending_zero = false>
 struct Checker : public IChecker
 {
     factor_t M;
@@ -454,7 +456,7 @@ struct Checker : public IChecker
     // ans_start_pos[part2_len]: moded value => ans start positions
     unordered_map<factor_t, vector<ssize_t>> ans_start_pos[N + 10];
 
-    DivideAndConquer<factor_t> dnc;
+    DivideAndConquer<factor_t, ending_zero> dnc;
 
     Checker(factor_t m) : M(m), dnc(m)
     {
@@ -514,7 +516,7 @@ struct Checker : public IChecker
 
             for (ssize_t start_pos : it->second)
             {
-                if (buffer[start_pos] == '0')
+                if (buffer[start_pos] == '0' || (ending_zero && digit != 0))
                     continue;
                 ssize_t ans_len = pos + part2_len - start_pos;
                 submitter.submit(start_pos, ans_len, SCAN);
@@ -550,27 +552,13 @@ struct Checker : public IChecker
                 if (buffer[start_pos] == '0')
                     continue;
 
-#ifdef FACTOR
-                factor_t vals[n_factor] = {0};
-#else
                 factor_t val = 0;
-#endif
                 ssize_t max_ans_len = pos + len - start_pos;
                 for (ssize_t ans_len = 1; ans_len <= max_ans_len; ++ans_len)
                 {
                     factor_t digit = buffer[start_pos + ans_len - 1] - '0';
-#ifdef FACTOR
-                    factor_t all = 0;
-                    for (int i_factor = 0; i_factor < n_factor; ++i_factor)
-                    {
-                        vals[i_factor] = (vals[i_factor] * 10 + digit) % factors[i_factor];
-                        all += vals[i_factor];
-                    }
-                    if (all == 0)
-#else
                     val = (val * 10 + digit) % M;
-                    if (val == 0)
-#endif
+                    if (val == 0 && (!ending_zero || digit == 0))
                     {
                         submitter.submit(start_pos, ans_len, LOOP);
                     }
@@ -625,7 +613,8 @@ int main()
     int n_checkers = 0;
     {
         printf("init M1 checker\n");
-        checkers[n_checkers++] = new Checker<uint64_t>(20220217214410);
+        // 2022021721441 * 10
+        checkers[n_checkers++] = new Checker<uint64_t, true>(2022021721441);
     }
 #ifndef DEBUG
     {

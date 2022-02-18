@@ -19,7 +19,7 @@ def is_ans(powers):
     return powers[0] >= 75 and powers[1] >= 50 and powers[2] >= 25
 
 
-with requests.Session().get("http://47.95.111.217:10001",
+with requests.Session().get("http://172.1.1.119:10001",
                             stream=True,
                             headers=None) as fin:
     start_pos = 0

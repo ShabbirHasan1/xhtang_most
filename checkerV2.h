@@ -36,7 +36,7 @@ namespace std
 
 #define USER "epsilon"
 #define PASSWORD "suu3E5SA"
-#define SERVER_IP "47.95.111.217"
+#define SERVER_IP "172.1.1.119"
 
 #define likely(x) __builtin_expect((x), 1)
 #define unlikely(x) __builtin_expect((x), 0)

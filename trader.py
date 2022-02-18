@@ -11,7 +11,7 @@ s = b""
 USER = 'epsilon'
 PASSWORD = 'suu3E5SA'
 
-with requests.Session().get("http://47.95.111.217:10001",
+with requests.Session().get("http://172.1.1.119:10001",
                             stream=True,
                             headers=None) as fin:
     start_pos = 0
@@ -25,6 +25,6 @@ with requests.Session().get("http://47.95.111.217:10001",
             num = int(s[i:])
             if num % M4 == 0:
                 requests.post(
-                    f"http://47.95.111.217:10002/submit?user={USER}&passwd={PASSWORD}",
+                    f"http://172.1.1.119:10002/submit?user={USER}&passwd={PASSWORD}",
                     data=s[i:])
                 print("submit", s[i:].decode("ascii"))

@@ -454,7 +454,7 @@ struct DivideAndConquer
                         bool is_ans = true;
                         for (int i_factor = 1; i_factor < n_factor; ++i_factor)
                         {
-                            factor_t val;
+                            factor_t val = 0;
                             for (ssize_t j = 0; j < ans_len; ++j)
                             {
                                 val = (val * 10 + buffer[start_pos + j] - '0') % factors[i_factor];

@@ -193,8 +193,7 @@ struct Submitter
 
                     ssize_t start_pos = ans_slices[i].first;
                     ssize_t ans_len = ans_slices[i].second;
-                    for (ssize_t j = 0; j < ans_len; ++j)
-                        putchar(buffer[start_pos + j] + '0');
+                    fwrite(buffer + start_pos, 1, ans_len, stdout);
                     putchar('\n');
                 }
             }
@@ -255,8 +254,7 @@ struct Submitter
 
                         ssize_t start_pos = ans_slices[i].first;
                         ssize_t ans_len = ans_slices[i].second;
-                        for (ssize_t j = 0; j < ans_len; ++j)
-                            putchar(buffer[start_pos + j] + '0');
+                        fwrite(buffer + start_pos, 1, ans_len, stdout);
 
                         puts(received ? "" : "(timeout)");
                         if (n_read > 0)
@@ -385,7 +383,7 @@ struct DivideAndConquer
             for (int part1_len = 1; part1_len <= max_part1_len; ++part1_len)
             {
                 ssize_t start_pos = mid - part1_len;
-                factor_t digit = buffer[start_pos];
+                factor_t digit = buffer[start_pos] - '0';
                 if (digit == 0)
                     continue;
                 part1 = (part1 + pow10[part1_len - 1] * digit) % dncM;
@@ -396,7 +394,7 @@ struct DivideAndConquer
             for (int part2_len = 1; part2_len <= max_part2_len; ++part2_len)
             {
                 ssize_t end_pos = mid + part2_len;
-                factor_t digit = buffer[end_pos - 1];
+                factor_t digit = buffer[end_pos - 1] - '0';
                 part2 = (part2 * 10 + digit) % dncM;
                 if (ending_zero && digit != 0)
                     continue;
@@ -483,13 +481,13 @@ struct Checker : public IChecker
         for (ssize_t part1_len = 1; part1_len <= max_part1_len; ++part1_len)
         {
             ssize_t start_pos = pos - part1_len;
-            if (buffer[start_pos] == 0)
+            if (buffer[start_pos] == '0')
                 continue;
 
             factor_t part1 = 0;
             for (ssize_t i = start_pos; i < pos; ++i)
             {
-                factor_t digit = buffer[i];
+                factor_t digit = buffer[i] - '0';
                 part1 = (part1 * 10 + digit) % M;
             }
 
@@ -511,7 +509,7 @@ struct Checker : public IChecker
         ssize_t max_part2_len = std::min<ssize_t>(len, N - 1);
         for (ssize_t part2_len = 1; part2_len <= max_part2_len; ++part2_len)
         {
-            factor_t digit = buffer[pos + part2_len - 1];
+            factor_t digit = buffer[pos + part2_len - 1] - '0';
             part2 = (part2 * 10 + digit) % M;
             if (ending_zero && digit != 0)
                 continue;
@@ -558,14 +556,14 @@ struct Checker : public IChecker
             // calculate later start_pos first to avoid competing
             for (ssize_t start_pos = pos + len - 1; start_pos > pos; --start_pos)
             {
-                if (buffer[start_pos] == 0)
+                if (buffer[start_pos] == '0')
                     continue;
 
                 factor_t val = 0;
                 ssize_t max_ans_len = std::min<ssize_t>(N, pos + len - start_pos);
                 for (ssize_t ans_len = 1; ans_len <= max_ans_len; ++ans_len)
                 {
-                    factor_t digit = buffer[start_pos + ans_len - 1];
+                    factor_t digit = buffer[start_pos + ans_len - 1] - '0';
                     val = (val * 10 + digit) % M;
                     if (ending_zero && digit != 0)
                         continue;
@@ -719,11 +717,6 @@ int main()
             {
                 printf("EOF\n");
                 exit(-1);
-            }
-
-            for (ssize_t i = pos; i < pos + n; ++i)
-            {
-                buffer[i] -= '0';
             }
 
             on_chunk(n);

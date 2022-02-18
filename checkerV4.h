@@ -52,7 +52,7 @@ namespace std
 const int N = 512;
 const int MAX_CHUNK = 1024;
 const int MAX_STR_LEN = 1024;
-const int MAX_CONTAINER_LEN = 8;
+const int MAX_CONTAINER_LEN = 4;
 
 #ifdef FACTOR
 extern const int n_factor;
@@ -147,7 +147,7 @@ struct Submitter
     int headers_n[N + 10];
 
     // 提交所使用的TCP连接池
-    static constexpr int SUBMIT_FD_N = 4;
+    static constexpr int SUBMIT_FD_N = 3;
     int next_submit_fd = 0;
     int submit_fds[SUBMIT_FD_N];
 

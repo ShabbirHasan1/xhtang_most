@@ -119,7 +119,7 @@ void update_ans()
         for (ssize_t part1_len = 1; part1_len <= max_part1_len; ++part1_len)
         {
             ssize_t start_pos = pos - part1_len;
-            if (start_pos < pos && buffer[start_pos] == '0')
+            if (buffer[start_pos] == '0')
                 continue;
 
             factor_t part1 = 0;
@@ -467,6 +467,9 @@ struct DivideAndConquer
                         }
                         if (!is_ans)
                         {
+#ifdef DEBUG
+                            printf("false candidate: start_pos=%ld ans_len=%ld\n", start_pos, ans_len);
+#endif
                             continue;
                         }
 #endif

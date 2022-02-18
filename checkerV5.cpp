@@ -83,6 +83,14 @@ void connect_to_port(int socket_fd, int port)
     rt_assert_eq(connect(socket_fd, (struct sockaddr *)addr_v4, sizeof(*addr_v4)), 0);
 }
 
+enum Stage
+{
+    SCAN,
+    DNC,
+    LOOP,
+    DONE,
+};
+
 struct Submitter
 {
     // 不同长度的http头
@@ -97,6 +105,7 @@ struct Submitter
     double received_time;
     double sent_times[MAX_CONTAINER_LEN];
     int to_close_fds[MAX_CONTAINER_LEN];
+    Stage ans_stage[MAX_CONTAINER_LEN];
     pair<ssize_t, ssize_t> ans_slices[MAX_CONTAINER_LEN];
     int ans_cnt = 0;
 
@@ -119,7 +128,7 @@ struct Submitter
         ans_cnt = 0;
     }
 
-    inline void submit(ssize_t start_pos, ssize_t ans_len)
+    inline void submit(ssize_t start_pos, ssize_t ans_len, Stage stage)
     {
         if (ans_cnt >= SUBMIT_FD_N)
             return;
@@ -138,6 +147,7 @@ struct Submitter
         next_submit_fd = (next_submit_fd + 1) % SUBMIT_FD_N;
 
         assert(ans_len > 0);
+        ans_stage[ans_cnt] = stage;
         ans_slices[ans_cnt] = {start_pos, ans_len};
         ++ans_cnt;
     }
@@ -240,7 +250,7 @@ struct Submitter
 
                     if (received || timeout || bad)
                     {
-                        printf("%.6lf ", sent_times[i] - received_time);
+                        printf("%.6lf %d ", sent_times[i] - received_time, ans_stage[i]);
 
                         ssize_t start_pos = ans_slices[i].first;
                         ssize_t ans_len = ans_slices[i].second;
@@ -400,7 +410,7 @@ struct DivideAndConquer
 #ifdef DEBUG
                         printf("dnc candidate: start_pos=%ld ans_len=%ld\n", start_pos, ans_len);
 #endif
-                        submitter.submit(start_pos, ans_len);
+                        submitter.submit(start_pos, ans_len, DNC);
                     }
                 }
             }
@@ -425,13 +435,6 @@ struct DivideAndConquer
             start_pos_dicts[i].reserve(N);
         }
     }
-};
-
-enum Stage
-{
-    DNC,
-    LOOP,
-    DONE
 };
 
 struct IChecker
@@ -514,7 +517,7 @@ struct Checker : public IChecker
                 if (buffer[start_pos] == '0')
                     continue;
                 ssize_t ans_len = pos + part2_len - start_pos;
-                submitter.submit(start_pos, ans_len);
+                submitter.submit(start_pos, ans_len, SCAN);
             }
         }
 
@@ -569,7 +572,7 @@ struct Checker : public IChecker
                     if (val == 0)
 #endif
                     {
-                        submitter.submit(start_pos, ans_len);
+                        submitter.submit(start_pos, ans_len, LOOP);
                     }
                 }
             }

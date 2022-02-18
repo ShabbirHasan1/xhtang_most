@@ -632,7 +632,6 @@ int main()
         // 2022021721441 * 10
         checkers[n_checkers++] = new Checker<uint64_t, true>(2022021721441);
     }
-#ifndef DEBUG
     {
         printf("init M2 checker\n");
         typedef __uint128_t factor_t;
@@ -642,12 +641,10 @@ int main()
             M = M * 10 + m[i] - '0';
         checkers[n_checkers++] = new Checker<factor_t>(M);
     }
-#endif
     {
         printf("init M3 checker\n");
         checkers[n_checkers++] = new Checker<uint64_t>(500000000000000147ULL);
     }
-#ifndef DEBUG
     {
         printf("init M4 checker\n");
         const int n_factor = 3;
@@ -666,7 +663,6 @@ int main()
         }
         checkers[n_checkers++] = new Checker<factor_t>(factors[2]);
     }
-#endif
     N_CHECKER = n_checkers;
 
     submitter.gen_submit_fd();

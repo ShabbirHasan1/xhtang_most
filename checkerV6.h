@@ -635,18 +635,18 @@ int main()
         // 非阻塞
         rt_assert_eq(fcntl(socket_fd, F_SETFL, fcntl(socket_fd, F_GETFL) | O_NONBLOCK), 0);
 
-        pollfd poll_info;
-        poll_info.fd = socket_fd;
-        poll_info.events = POLLIN;
+        // pollfd poll_info;
+        // poll_info.fd = socket_fd;
+        // poll_info.events = POLLIN;
 
         while (pos + MAX_CHUNK < BUFFER_SIZE)
         {
-            poll(&poll_info, 1, -1);
-            if (poll_info.revents & (POLLERR | POLLHUP))
-            {
-                printf("Poll Error\n");
-                exit(-1);
-            }
+            // poll(&poll_info, 1, -1);
+            // if (poll_info.revents & (POLLERR | POLLHUP))
+            // {
+            //     printf("Poll Error\n");
+            //     exit(-1);
+            // }
 
             ssize_t n = read(socket_fd, buffer + pos, MAX_CHUNK);
             if (n == -1)
@@ -656,6 +656,7 @@ int main()
                     printf("Read Error\n");
                     exit(-1);
                 }
+                sched_yield();
                 continue;
             }
             if (n == 0)

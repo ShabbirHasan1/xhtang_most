@@ -51,10 +51,6 @@ const int MAX_CONTAINER_LEN = 8;
 
 void init();
 
-#ifndef sqr_factor_t
-#define sqr_factor_t __uint128_t
-#endif
-
 const int BUFFER_SIZE = 1 * 1024 * 1024 * 1024; // 1GB
 ssize_t pos = 0;
 uint8_t buffer[BUFFER_SIZE];
@@ -278,6 +274,24 @@ struct Submitter
     }
 } submitter;
 
+template <typename factor_t>
+struct Sqr
+{
+    typedef uint8_t sqr_factor_t;
+};
+
+template <>
+struct Sqr<uint64_t>
+{
+    typedef __uint128_t sqr_factor_t;
+};
+
+template <>
+struct Sqr<uint32_t>
+{
+    typedef uint64_t sqr_factor_t;
+};
+
 template <typename factor_t, bool ending_zero>
 struct DivideAndConquer
 {
@@ -292,10 +306,12 @@ struct DivideAndConquer
     pair<ssize_t, ssize_t> dnc_slices[N * 2];
     unordered_map<factor_t, ssize_t> start_pos_dicts[N * 2];
 
+    typedef typename Sqr<factor_t>::sqr_factor_t sqr_factor_t;
+
     DivideAndConquer(factor_t M) : dncM(M)
     {
         enabled = dncM % 2 != 0 && dncM % 5 != 0;
-        enabled &= (sizeof(factor_t) == 8);
+        enabled &= (sizeof(factor_t) <= 8);
         printf("divide and conquer %s\n", enabled ? "enabled" : "disabled");
         if (!enabled)
             return;

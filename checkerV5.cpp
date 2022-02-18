@@ -193,7 +193,8 @@ struct Submitter
 
                     ssize_t start_pos = ans_slices[i].first;
                     ssize_t ans_len = ans_slices[i].second;
-                    fwrite(buffer + start_pos, 1, ans_len, stdout);
+                    for (ssize_t j = 0; j < ans_len; ++j)
+                        putchar(buffer[start_pos + j] + '0');
                     putchar('\n');
                 }
             }

@@ -587,12 +587,8 @@ struct Checker : public IChecker
     }
 };
 
-#ifdef DEBUG
-constexpr int N_CHECKER = 2;
-#else
-constexpr int N_CHECKER = 4;
-#endif
-IChecker *checkers[N_CHECKER];
+int N_CHECKER = 0;
+IChecker *checkers[4];
 void on_chunk(ssize_t len)
 {
     submitter.on_chunk();
@@ -641,11 +637,11 @@ int main()
             M = M * 10 + m[i] - '0';
         checkers[n_checkers++] = new Checker<factor_t>(M);
     }
-#endif
     {
         printf("init M3 checker\n");
         checkers[n_checkers++] = new Checker<uint64_t>(500000000000000147ULL);
     }
+#endif
 #ifndef DEBUG
     {
         printf("init M4 checker\n");
@@ -666,6 +662,7 @@ int main()
         checkers[n_checkers++] = new Checker<factor_t>(factors[2]);
     }
 #endif
+    N_CHECKER = n_checkers;
 
     submitter.gen_submit_fd();
 

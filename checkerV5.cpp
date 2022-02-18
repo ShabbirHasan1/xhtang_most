@@ -379,7 +379,8 @@ struct DivideAndConquer
             ssize_t right_len = slice_len - left_len;
             factor_t part1 = 0;
             auto &start_pos_dict = start_pos_dicts[head];
-            for (int part1_len = 1; part1_len <= left_len; ++part1_len)
+            ssize_t max_part1_len = std::min<ssize_t>(N - 1, left_len);
+            for (int part1_len = 1; part1_len <= max_part1_len; ++part1_len)
             {
                 ssize_t start_pos = mid - part1_len;
                 factor_t digit = buffer[start_pos] - '0';
@@ -389,7 +390,8 @@ struct DivideAndConquer
                 start_pos_dict[part1].push_back(start_pos);
             }
             factor_t part2 = 0;
-            for (int part2_len = 1; part2_len <= right_len; ++part2_len)
+            ssize_t max_part2_len = std::min<ssize_t>(N - 1, right_len);
+            for (int part2_len = 1; part2_len <= max_part2_len; ++part2_len)
             {
                 ssize_t end_pos = mid + part2_len;
                 factor_t digit = buffer[end_pos - 1] - '0';
@@ -412,7 +414,8 @@ struct DivideAndConquer
 #ifdef DEBUG
                         printf("dnc candidate: start_pos=%ld ans_len=%ld\n", start_pos, ans_len);
 #endif
-                        submitter.submit(start_pos, ans_len, DNC);
+                        if (likely(ans_len <= N))
+                            submitter.submit(start_pos, ans_len, DNC);
                     }
                 }
             }
@@ -518,8 +521,6 @@ struct Checker : public IChecker
 
             for (ssize_t start_pos : it->second)
             {
-                if (buffer[start_pos] == '0')
-                    continue;
                 ssize_t ans_len = pos + part2_len - start_pos;
                 submitter.submit(start_pos, ans_len, SCAN);
             }
@@ -555,7 +556,7 @@ struct Checker : public IChecker
                     continue;
 
                 factor_t val = 0;
-                ssize_t max_ans_len = pos + len - start_pos;
+                ssize_t max_ans_len = std::min<ssize_t>(N, pos + len - start_pos);
                 for (ssize_t ans_len = 1; ans_len <= max_ans_len; ++ans_len)
                 {
                     factor_t digit = buffer[start_pos + ans_len - 1] - '0';
@@ -583,6 +584,9 @@ int N_CHECKER = 0;
 IChecker *checkers[4];
 void on_chunk(ssize_t len)
 {
+#ifdef DEBUG
+    printf("chunk len %ld\n", len);
+#endif
     submitter.on_chunk();
 
     for (int i = 0; i < N_CHECKER; ++i)

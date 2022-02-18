@@ -522,8 +522,11 @@ struct Checker : public IChecker
             for (ssize_t start_pos : it->second)
             {
                 ssize_t ans_len = pos + part2_len - start_pos;
-                submitter.submit(start_pos, ans_len, SCAN);
-                submitted = true;
+                if (ans_len <= N)
+                {
+                    submitter.submit(start_pos, ans_len, SCAN);
+                    submitted = true;
+                }
             }
         }
 

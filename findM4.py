@@ -11,7 +11,7 @@ PASSWORD = 'suu3E5SA'
 
 
 def is_submit(powers):
-    return powers[2] >= 15
+    return powers[2] >= 10
     #return powers[0] >= 55 and powers[1] >= 35 and powers[2] >= 20
 
 

@@ -117,7 +117,7 @@ class AnsTracker:
 tracker = AnsTracker()
 start_time = datetime.now()
 while True:
-    board = requests.get('http://172.1.1.119:10000/board.txt')
+    board = requests.get('http://47.95.111.217:10000/board.txt')
     if not board.ok or len(board.text) == 0:
         log('[WARN] fail to get board')
         time.sleep(60)

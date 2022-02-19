@@ -7,7 +7,7 @@ yum install git tmux htop centos-release-scl devtoolset-10 -y
 echo "source /opt/rh/devtoolset-10/enable" >> /etc/profile
 source /etc/profile
 
-# pull ocde
+# pull code
 ssh-keygen -t rsa
 git clone ssh://git@bitbucket.pinghu.tech/~xhtang/low-latency-trading-101.git
 python3 -m pip install --upgrade requests

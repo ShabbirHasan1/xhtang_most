@@ -433,16 +433,16 @@ struct DivideAndConquer
                             submitter.submit(start_pos, ans_len, DNC);
                     }
                 }
+            }
 
-                // recursive handle two half, right first
-                if (right_len >= min_len_dncM)
-                {
-                    dnc_slices[tail++] = {left + left_len, right_len};
-                }
-                if (left_len >= min_len_dncM)
-                {
-                    dnc_slices[tail++] = {left, left_len};
-                }
+            // recursive handle two half, right first
+            if (right_len >= min_len_dncM)
+            {
+                dnc_slices[tail++] = {left + left_len, right_len};
+            }
+            if (left_len >= min_len_dncM)
+            {
+                dnc_slices[tail++] = {left, left_len};
             }
         }
     }

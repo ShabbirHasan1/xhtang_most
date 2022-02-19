@@ -377,7 +377,7 @@ struct DivideAndConquer
             bool impossble[M_cnt] = {false};
             for (int k = 0; k < M_cnt; ++k)
             {
-                impossble[k] = len_dncM[k] < slice_len;
+                impossble[k] = slice_len < len_dncM[k];
             }
 
             // find answers cross the mid

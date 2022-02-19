@@ -59,7 +59,7 @@ uint8_t buffer[BUFFER_SIZE];
 inline double get_timestamp()
 {
     timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
+    clock_gettime(CLOCK_REALTIME_COARSE, &ts);
     return ts.tv_sec + ts.tv_nsec / 1e9;
 }
 
@@ -124,19 +124,22 @@ struct Submitter
 
     inline void submit(ssize_t start_pos, ssize_t ans_len, Stage stage)
     {
-        if (ans_cnt >= SUBMIT_FD_N)
+        if (unlikely(ans_cnt >= SUBMIT_FD_N))
             return;
-        memcpy(headers[ans_len] + headers_n[ans_len], buffer + start_pos, ans_len);
-
-        sent_times[ans_cnt] = get_timestamp();
 
 #ifndef DEBUG
+        struct iovec data[2] =
+            {
+                {headers[ans_len], (size_t)headers_n[ans_len]},
+                {buffer + start_pos, (size_t)ans_len},
+            };
         int submit_fd = submit_fds[next_submit_fd];
         ssize_t write_len = headers_n[ans_len] + ans_len;
-        int ret = write(submit_fd, headers[ans_len], write_len);
+        int ret = writev(submit_fd, data, 2);
         assert(ret == write_len && "write incomplete");
 #endif
 
+        sent_times[ans_cnt] = get_timestamp();
         to_close_fds[ans_cnt] = next_submit_fd;
         next_submit_fd = (next_submit_fd + 1) % SUBMIT_FD_N;
 
@@ -607,6 +610,10 @@ void on_chunk(ssize_t len)
 
 int main()
 {
+    // keep CPU powered
+    int pm_qos_fd = open("/dev/cpu_dma_latency", O_RDWR);
+    assert(pm_qos_fd >= 0);
+
     init();
     submitter.gen_submit_fd();
 

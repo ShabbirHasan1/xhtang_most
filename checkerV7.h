@@ -607,18 +607,22 @@ int main()
         // 非阻塞
         rt_assert_eq(fcntl(socket_fd, F_SETFL, fcntl(socket_fd, F_GETFL) | O_NONBLOCK), 0);
 
-        // pollfd poll_info;
-        // poll_info.fd = socket_fd;
-        // poll_info.events = POLLIN;
+#ifdef BLOCKING
+        pollfd poll_info;
+        poll_info.fd = socket_fd;
+        poll_info.events = POLLIN;
+#endif
 
         while (pos + MAX_CHUNK < BUFFER_SIZE)
         {
-            // poll(&poll_info, 1, -1);
-            // if (poll_info.revents & (POLLERR | POLLHUP))
-            // {
-            //     printf("Poll Error\n");
-            //     exit(-1);
-            // }
+#ifdef BLOCKING
+            poll(&poll_info, 1, -1);
+            if (poll_info.revents & (POLLERR | POLLHUP))
+            {
+                printf("Poll Error\n");
+                exit(-1);
+            }
+#endif
 
             ssize_t n = read(socket_fd, buffer + pos, MAX_CHUNK);
             if (n == -1)

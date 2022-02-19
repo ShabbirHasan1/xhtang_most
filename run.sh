@@ -1,9 +1,13 @@
 mkdir -p ./log
 mkdir -p ./bin
 
-sysctl -w net.ipv4.tcp_low_latency=1
-sysctl -w net.ipv4.tcp_timestamps=0
-echo tsc > /sys/devices/system/clocksource/clocksource0/current_clocksource
+if [[ $UESR == "root" ]]; then
+    sysctl -w net.ipv4.tcp_low_latency=1
+    sysctl -w net.ipv4.tcp_timestamps=0
+    echo tsc > /sys/devices/system/clocksource/clocksource0/current_clocksource
+    systemctl stop AssistDaemon
+    systemctl stop aliyun
+fi
 
 nice_command=$2
 if [[ $nice_command == "" && $USER == "root" ]]; then

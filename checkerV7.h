@@ -44,7 +44,7 @@ namespace std
 #define rt_assert assert
 #define rt_assert_eq(a, b) assert((a) == (b))
 
-const int N = 512;
+const int N = 256;
 const int MAX_CHUNK = 1024;
 const int MAX_STR_LEN = 1024;
 const int MAX_CONTAINER_LEN = 8;

@@ -25,7 +25,7 @@ using namespace std;
 
 typedef __uint128_t factor_t;
 
-const int N = 512;
+const int N = 256;
 const int MAX_CHUNK = 1024;
 factor_t M = 0;
 

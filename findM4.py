@@ -3,7 +3,7 @@ from collections import defaultdict
 
 import requests
 
-N = 512
+N = 256
 s = b""
 
 USER = 'epsilon'

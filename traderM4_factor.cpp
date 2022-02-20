@@ -25,7 +25,7 @@ using namespace std;
 
 typedef uint64_t factor_t;
 
-const int N = 512;
+const int N = 256;
 const int MAX_CHUNK = 1024;
 factor_t factors[] = {
     1,

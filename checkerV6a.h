@@ -300,7 +300,7 @@ struct SmallHash
 
     inline void clear()
     {
-        memset(table, -1, sizeof(table));
+        memset(table, -1, (size_t)sizeof(table));
     }
 
     inline void reserve(int)

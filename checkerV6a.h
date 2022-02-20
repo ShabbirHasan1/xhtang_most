@@ -300,7 +300,7 @@ struct SmallHash
 
     inline void clear()
     {
-        memset(table, -1, (size_t)sizeof(table));
+        std::fill(table, table + CAPACITY, std::pair<K, V>(0, -1));
     }
 
     inline void reserve(int)

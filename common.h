@@ -126,9 +126,9 @@ struct SmallHashAVX
         auto &entry = table[k % CAPACITY];
         __m256i kvec = _mm256_i64gather_epi64(reinterpret_cast<long long *>(entry), _mm256_set_epi64x(0, 2, 4, 6), 8);
         __m256i vvec = _mm256_i64gather_epi64(reinterpret_cast<long long *>(entry), _mm256_set_epi64x(1, 3, 5, 7), 8);
-        __m256i cmp_k = _mm256_cmpeq_epi64(kvec, _mm256_set1_epi64x(k));
-        __m256i cmp_v = _mm256_cmpeq_epi64(vvec, _mm256_set1_epi64x(NONE));
-        __m256i found = _mm256_or_si256(vvec, kvec);
+        __m256i found_k = _mm256_cmpeq_epi64(kvec, _mm256_set1_epi64x(k));
+        __m256i empty_v = _mm256_cmpeq_epi64(vvec, _mm256_set1_epi64x(NONE));
+        __m256i found = _mm256_or_si256(found_k, empty_v);
         int mask = _mm256_movemask_epi8(found);
         int index = ffs(mask);
         if (index > 0)
@@ -155,8 +155,8 @@ struct SmallHashAVX
     {
         auto &entry = table[k % CAPACITY];
         __m256i kvec = _mm256_i64gather_epi64(reinterpret_cast<long long *>(entry), _mm256_set_epi64x(0, 2, 4, 6), 8);
-        __m256i cmp_k = _mm256_cmpeq_epi64(kvec, _mm256_set1_epi64x(k));
-        int mask = _mm256_movemask_epi8(cmp_k);
+        __m256i found_k = _mm256_cmpeq_epi64(kvec, _mm256_set1_epi64x(k));
+        int mask = _mm256_movemask_epi8(found_k);
         int index = ffs(mask);
 #ifdef DEBUG
         assert(index >= 0 && index <= MAX_CONTAINER_LEN * 8);

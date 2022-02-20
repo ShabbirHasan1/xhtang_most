@@ -1,4 +1,4 @@
-#include "checkerV6.h"
+#include "checkerV6a.h"
 
 void init()
 {

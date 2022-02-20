@@ -285,10 +285,11 @@ template <typename K, typename V>
 struct SmallHash
 {
     static constexpr size_t CAPACITY = N * N;
-    V table[CAPACITY];
+    V *table;
 
     SmallHash()
     {
+        table = new V[CAPACITY];
         clear();
     }
 

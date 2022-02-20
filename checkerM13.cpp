@@ -8,15 +8,15 @@ constexpr uint64_t pow101(uint64_t base, uint64_t power)
     return ans;
 }
 
-constexpr int M_cnt = 3;
 constexpr uint64_t M[] = {
     // M1
     2022021721441ULL, // * 10
     // M3
     500000000000000147ULL,
     // M4 factor
-    pow101(11, 17),
+    // pow101(11, 17),
 };
+constexpr int M_cnt = int(sizeof(M) / sizeof(M[0]));
 
 #include "checkerV7.h"
 

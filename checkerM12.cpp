@@ -18,4 +18,5 @@ void init()
         checkers[n_checkers++] = new Checker<factor_t>(M);
     }
     N_CHECKER = n_checkers;
+    shuffle = false;
 }

@@ -595,6 +595,7 @@ struct Checker : public IChecker
 };
 
 int N_CHECKER = 0;
+bool shuffle = true;
 IChecker *checkers[4];
 void on_chunk(ssize_t len)
 {
@@ -630,7 +631,8 @@ void on_chunk(ssize_t len)
         checkers[i]->on_chunk_done();
     }
 
-    std::random_shuffle(checkers, checkers + N_CHECKER);
+    if (shuffle)
+        std::random_shuffle(checkers, checkers + N_CHECKER);
     submitter.on_chunk_done();
 }
 

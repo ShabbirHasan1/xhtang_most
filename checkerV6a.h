@@ -284,7 +284,7 @@ struct Sqr<uint32_t>
 template <typename K, typename V>
 struct SmallHash
 {
-    static constexpr size_t CAPACITY = N * N / 8;
+    static constexpr size_t CAPACITY = N * N / 2;
     std::pair<K, V> table[CAPACITY];
 
     SmallHash()
